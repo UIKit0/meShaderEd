@@ -758,4 +758,17 @@ class ImageNodeParam ( NodeParam ):
           value = s 
         rangeList.append( (label, value) )
       
-    return rangeList         
+    return rangeList 
+
+#
+# Geometry
+# 
+class GeomNodeParam ( NodeParam ):    
+  #
+  #
+  def __init__ ( self, xml_param = None, isRibParam = False ):
+    NodeParam.__init__ ( self, xml_param, isRibParam )  
+    self.type = 'geom' 
+  #
+  #
+  def encodedTypeStr ( self ): return 'G'              

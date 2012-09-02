@@ -14,6 +14,7 @@ from rslNode import RSLNode
 from ribCodeNode import RIBCodeNode
 from ribNode import RIBNode
 from imageNode import ImageNode
+from geomNode import GeomNode
 
 from nodeParam import NodeParam
 from nodeLink import NodeLink
@@ -250,6 +251,7 @@ class NodeNetwork ( QtCore.QObject ):
                        ,'displacement':RSLNode
                        ,'light':RSLNode 
                        ,'volume':RSLNode 
+                       ,'geom':GeomNode 
                       }  
     
     node_type = str ( xml_node.attributes().namedItem( 'type' ).nodeValue() )

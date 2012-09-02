@@ -27,26 +27,28 @@ class GeomView ( QGLWidget ):
     
     self.pixmap = None
     
-    #self.setMinimumSize ( 500, 500 )
-   
-    # set scene
-    #scene = QtGui.QGraphicsScene ( self )
-    
-    #scene.setSceneRect ( 0, 0, 256, 256 )
-    #scene.setItemIndexMethod ( QtGui.QGraphicsScene.NoIndex )
-    #self.setScene ( scene )
-    
-    # qt graphics stuff
-    #self.setCacheMode ( QtGui.QGraphicsView.CacheBackground )
-    #self.setRenderHint ( QtGui.QPainter.Antialiasing )
-    
-    #self.setTransformationAnchor ( QtGui.QGraphicsView.AnchorUnderMouse )
-    #self.setResizeAnchor ( QtGui.QGraphicsView.AnchorViewCenter )
-    #self.setDragMode ( QtGui.QGraphicsView.RubberBandDrag )
-    
-    #self.setMouseTracking ( False )
-    
-    #self.BgBrush = QtGui.QBrush ( QtGui.QColor ( 128, 128, 128 ) )  
+    self.geom_code = """
+glEnableClientState(GL_VERTEX_ARRAY)
+spiral_array = []
+# Second Spiral using "array immediate mode" (i.e. Vertex Arrays)
+radius = 0.8
+x = radius*math.sin(0)
+y = radius*math.cos(0)
+glColor(1.0, 0.0, 0.0)
+for deg in xrange(820):
+  spiral_array.append ( [x, y] )
+  rad = math.radians(deg)
+  radius -= 0.001
+  x = radius*math.sin(rad)
+  y = radius*math.cos(rad)
+
+glVertexPointerf(spiral_array)
+glDrawArrays( GL_LINE_STRIP, 0, len(spiral_array) )
+glFlush()
+
+
+
+""" 
     
     print '>> GeomView init'
   #
@@ -102,24 +104,8 @@ class GeomView ( QGLWidget ):
       x = radius*math.sin(rad)
       y = radius*math.cos(rad)
     glEnd()
-    glEnableClientState(GL_VERTEX_ARRAY)
     
-    spiral_array = []
-    # Second Spiral using "array immediate mode" (i.e. Vertex Arrays)
-    radius = 0.8
-    x = radius*math.sin(0)
-    y = radius*math.cos(0)
-    glColor(1.0, 0.0, 0.0)
-    for deg in xrange(820):
-      spiral_array.append ( [x, y] )
-      rad = math.radians(deg)
-      radius -= 0.001
-      x = radius*math.sin(rad)
-      y = radius*math.cos(rad)
-
-    glVertexPointerf(spiral_array)
-    glDrawArrays( GL_LINE_STRIP, 0, len(spiral_array) )
-    glFlush()
+    exec self.geom_code
 
   #
   #

@@ -44,9 +44,13 @@ class NodeEditor ( QtGui.QWidget ):
       if self.editNode.author != None : self.ui.author_lineEdit.setText ( self.editNode.author )  
       if self.editNode.master != None : self.ui.master_lineEdit.setText ( self.editNode.master ) 
       if self.editNode.icon != None : self.ui.icon_lineEdit.setText ( self.editNode.icon )
+      print '* self.editNode.help = %s' %  self.editNode.help
       if self.editNode.help != None : 
         doc = QtGui.QTextDocument ()
         doc.setPlainText ( self.editNode.help )
+        layout = QtGui.QPlainTextDocumentLayout( doc )
+        doc.setDocumentLayout( layout )
+        
         self.ui.help_plainTextEdit.setDocument ( doc )  
       
       self.ui.id_lineEdit.setText ( str( self.editNode.id ) ) 

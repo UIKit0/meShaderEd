@@ -211,7 +211,7 @@ class Node ( QtCore.QObject ):
     help_tag = xml_node.namedItem ( 'help' )
     if not help_tag.isNull() :
       self.help = help_tag.toElement().text()
-      #print '-> help= %s' % self.help
+      print '-> help= %s' % self.help
       
     self.icon = str ( xml_node.attributes().namedItem( 'icon' ).nodeValue() )   
       
@@ -233,6 +233,7 @@ class Node ( QtCore.QObject ):
                             ,'text':TextNodeParam
                             ,'transform':TransformNodeParam
                             ,'image':ImageNodeParam
+                            ,'geom':GeomNodeParam
                          }
                          
     input_tag = xml_node.namedItem ( 'input' )
