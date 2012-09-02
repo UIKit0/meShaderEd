@@ -5,21 +5,29 @@
 #
 #===============================================================================
 import os, sys
-from PyQt4 import QtCore, QtGui, QtOpenGL
+import math
+
+from OpenGL.GL import *
+from OpenGL.GLU import *
+
+from PyQt4 import QtCore, QtGui 
+from PyQt4.QtOpenGL import *
 #
 #
 #
-class GeomView ( QtOpenGL.QGLWidget ):
+class GeomView ( QGLWidget ):
   #
   #
   def __init__ ( self, parent ):
     #
-    QtOpenGL.QGLWidget.__init__ ( self, parent )
+    QGLWidget.__init__ ( self, parent )
     
     self.state = 'idle' 
     self.panStartPos = None
     
     self.pixmap = None
+    
+    #self.setMinimumSize ( 500, 500 )
    
     # set scene
     #scene = QtGui.QGraphicsScene ( self )
@@ -43,6 +51,75 @@ class GeomView ( QtOpenGL.QGLWidget ):
     print '>> GeomView init'
   #
   #
+  def initializeGL ( self ) :
+    #
+    print ">> GeomeView: initializeGL"
+    
+    #glClearColor(0.0, 0.0, 0.0, 0.0);
+    #glEnable(GL_DEPTH_TEST);  
+    # set viewing projection
+    glClearColor(0.0, 0.0, 0.0, 1.0)
+    glClearDepth(1.0)
+    glViewport(0, 0, 500, 500)
+    glMatrixMode(GL_PROJECTION)
+    glLoadIdentity()
+    gluPerspective(40.0, 1.0, 1.0, 30.0)
+  #
+  #
+  def resizeGL ( self, w, h) :
+    #
+    print ">> GeomeView: resizeGL (%d, %d)" % ( w, h )     
+    
+    #setup viewport, projection etc.:
+    
+    #glViewport(0, 0, w, h)
+    #glMatrixMode(GL_PROJECTION)
+    #glLoadIdentity()
+    #gluPerspective(40.0, 1.0, 1.0, 30.0)
+    
+  #
+  #
+  def paintGL ( self ) :
+    #
+    print ">> GeomeView: paintGL"
+    
+    # draw the scene:
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    glLoadIdentity()
+    # Draw the spiral in 'immediate mode'
+    # WARNING: You should not be doing the spiral calculation inside the loop
+    # even if you are using glBegin/glEnd, sin/cos are fairly expensive functions
+    # I've left it here as is to make the code simpler.
+    radius = 1.0
+    x = radius*math.sin(0)
+    y = radius*math.cos(0)
+    glColor(0.0, 1.0, 0.0)
+    glBegin(GL_LINE_STRIP)
+    for deg in xrange(1000):
+      glVertex( x, y, 0.0 )
+      rad = math.radians(deg)
+      radius -= 0.001
+      x = radius*math.sin(rad)
+      y = radius*math.cos(rad)
+    glEnd()
+    glEnableClientState(GL_VERTEX_ARRAY)
+    
+    spiral_array = []
+    # Second Spiral using "array immediate mode" (i.e. Vertex Arrays)
+    radius = 0.8
+    x = radius*math.sin(0)
+    y = radius*math.cos(0)
+    glColor(1.0, 0.0, 0.0)
+    for deg in xrange(820):
+      spiral_array.append ( [x, y] )
+      rad = math.radians(deg)
+      radius -= 0.001
+      x = radius*math.sin(rad)
+      y = radius*math.cos(rad)
+
+    glVertexPointerf(spiral_array)
+    glDrawArrays( GL_LINE_STRIP, 0, len(spiral_array) )
+    glFlush()
 
   #
   #
