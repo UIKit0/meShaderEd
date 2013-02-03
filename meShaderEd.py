@@ -1,13 +1,16 @@
-#!/usr/local/bin/python
+#!/usr/bin/python
 #
 # meShaderEd.py
 #
-# version 0.2.6 29 Aug 2012
-# version 0.2.5 19 Jul 2012
-# version 0.2.0 27 May 2012
-# version 0.1.1 16 May 2012
-# version 0.1.0 13 May 2012
-# version 0.0.1 5 Mar 2011
+# version 0.2.9 (27 Jan 2012)
+# version 0.2.8 (20 Jan 2012)
+# version 0.2.7 (20 Sep 2012)
+# version 0.2.6 (29 Aug 2012)
+# version 0.2.5 (19 Jul 2012)
+# version 0.2.0 (27 May 2012)
+# version 0.1.1 (16 May 2012)
+# version 0.1.0 (13 May 2012)
+# version 0.0.1 (5 Mar 2011)
 #
 # written by Yuri.Meshalkin (mesh@kpp.kiev.ua)
 #
@@ -33,9 +36,11 @@ from core.meCommon import *
 from core.nodeLibrary import NodeLibrary
 from core.meRendererPreset import meRendererPreset
 
-from global_vars import app_global_vars
+from global_vars import app_global_vars, DEBUG_MODE
+
 
 root = normPath ( sys.path[0] )
+version = '0.2.9'
 
 app_settings = QtCore.QSettings( QtCore.QSettings.IniFormat, 
                                  QtCore.QSettings.UserScope,
@@ -74,11 +79,11 @@ app_renderer = meRendererPreset ( os.path.join ( root, 'renderers.xml' ), defRen
 #
 #
 def main ():
-  
   #global root
   
   app = QtGui.QApplication ( sys.argv )
   
+  app_settings.setValue ( 'version', version )
   app_settings.setValue ( 'root', normPath ( root ) )
   
   temp_dir = setDefaultValue ( 'temp', normPath ( os.path.join ( root, 'tmp' ) ) )
@@ -93,58 +98,55 @@ def main ():
   
   lib_dir = setDefaultValue ( 'lib', normPath ( os.path.join ( root, 'lib' ) ) ) 
   node_dir = setDefaultValue ( 'nodes', normPath ( os.path.join ( lib_dir, 'nodes' ) ) )
-  texture_dir = setDefaultValue ('texture', normPath ( os.path.join ( lib_dir, 'textures' ) ) )
-  shaders_dir = setDefaultValue ('shaders', normPath ( os.path.join ( lib_dir, 'shaders' ) ) )
-  archive_dir = setDefaultValue ('archive', normPath ( os.path.join ( lib_dir, 'archives' ) ) )
+  texture_dir = setDefaultValue ( 'texture', normPath ( os.path.join ( lib_dir, 'textures' ) ) )
+  shaders_dir = setDefaultValue ( 'shaders', normPath ( os.path.join ( lib_dir, 'shaders' ) ) )
+  archive_dir = setDefaultValue ( 'archive', normPath ( os.path.join ( lib_dir, 'archives' ) ) )
   
-  include_dir = setDefaultValue ('include', normPath ( os.path.join ( root, 'include' ) ) )
+  include_dir = setDefaultValue ( 'include', normPath ( os.path.join ( root, 'include' ) ) )
   
-  createMissingDirs ( [temp_dir, lib_dir, project_dir, project_shaders, project_textures] )
-  createMissingDirs ( [shader_networks_dir, shader_sources_dir] )
-  createMissingDirs ( [node_dir, texture_dir, shaders_dir, archive_dir, include_dir] )
-  
-  #  path(), filePath(), absolutePath(), and absoluteFilePath().
-  
-  #print 'root = %s' % ( root )
-  #print 'lib_dir = %s' % ( lib_dir )
-  #print 'node_dir = %s' % ( node_dir )
+  createMissingDirs ( [ temp_dir, lib_dir, project_dir, project_shaders, project_textures ] )
+  createMissingDirs ( [ shader_networks_dir, shader_sources_dir ] )
+  createMissingDirs ( [ node_dir, texture_dir, shaders_dir, archive_dir ] ) # include_dir supposed to be a list
+
   #
   # setup globals
   #
-  app_global_vars[ 'RootPath' ] = root
-  app_global_vars[ 'TempPath' ] = temp_dir
-  app_global_vars[ 'ProjectPath' ] = project_dir
-  app_global_vars[ 'ProjectShaders' ] = project_shaders
-  app_global_vars[ 'ProjectTextures' ] = project_textures
+  app_global_vars [ 'version' ] = app_settings.value( 'version' ).toString()
+  app_global_vars [ 'RootPath' ] = root
+  app_global_vars [ 'TempPath' ] = temp_dir
+  app_global_vars [ 'ProjectPath' ] = project_dir
+  app_global_vars [ 'ProjectShaders' ] = project_shaders
+  app_global_vars [ 'ProjectTextures' ] = project_textures
   
-  app_global_vars[ 'ProjectNetworks' ] = shader_networks_dir
-  app_global_vars[ 'ProjectSources' ] = shader_sources_dir
+  app_global_vars [ 'ProjectNetworks' ] = shader_networks_dir
+  app_global_vars [ 'ProjectSources' ] = shader_sources_dir
   
-  app_global_vars[ 'LibPath' ] = lib_dir
-  app_global_vars[ 'NodesPath' ] = node_dir
-  app_global_vars[ 'TexturePath' ] = texture_dir
-  app_global_vars[ 'ShaderPath' ] = shaders_dir 
-  app_global_vars[ 'IncludePath' ] = include_dir 
+  app_global_vars [ 'LibPath' ] = lib_dir
+  app_global_vars [ 'NodesPath' ] = node_dir
+  app_global_vars [ 'TexturePath' ] = texture_dir
+  app_global_vars [ 'ShaderPath' ] = shaders_dir 
+  app_global_vars [ 'IncludePath' ] = include_dir 
   
-  app_global_vars[ 'TextureSearchPath' ] = sanitizeSearchPath ( texture_dir )
-  app_global_vars[ 'ShaderSearchPath' ] = sanitizeSearchPath ( shaders_dir )
-  app_global_vars[ 'ArchiveSearchPath' ] = sanitizeSearchPath ( archive_dir )
+  app_global_vars [ 'TextureSearchPath' ] = sanitizeSearchPath ( texture_dir )
+  app_global_vars [ 'ShaderSearchPath' ] = sanitizeSearchPath ( shaders_dir )
+  app_global_vars [ 'ArchiveSearchPath' ] = sanitizeSearchPath ( archive_dir )
   
-  app_global_vars[ 'ProjectSearchPath' ] = sanitizeSearchPath ( project_dir )
-  app_global_vars[ 'ProjectSearchShaders' ] = sanitizeSearchPath ( project_shaders )
-  app_global_vars[ 'ProjectSearchTextures' ] = sanitizeSearchPath ( project_textures )
+  app_global_vars [ 'ProjectSearchPath' ] = sanitizeSearchPath ( project_dir )
+  app_global_vars [ 'ProjectSearchShaders' ] = sanitizeSearchPath ( project_shaders )
+  app_global_vars [ 'ProjectSearchTextures' ] = sanitizeSearchPath ( project_textures )
   
-  app_global_vars[ 'Renderer' ] = app_renderer.getCurrentValue( 'renderer', 'name' ) 
-  app_global_vars[ 'RendererFlags' ] = app_renderer.getCurrentValue( 'renderer', 'flags' ) 
-  app_global_vars[ 'ShaderCompiler' ] = app_renderer.getCurrentValue( 'shader', 'compiler' )
-  app_global_vars[ 'ShaderDefines' ] = app_renderer.getCurrentValue( 'shader', 'defines' )
-  app_global_vars[ 'TEX' ] = app_renderer.getCurrentValue( 'texture', 'extension' )
-  app_global_vars[ 'SLO' ] = app_renderer.getCurrentValue( 'shader', 'extension' )
+  app_global_vars [ 'Renderer' ] = app_renderer.getCurrentValue( 'renderer', 'name' ) 
+  app_global_vars [ 'RendererFlags' ] = app_renderer.getCurrentValue( 'renderer', 'flags' ) 
+  app_global_vars [ 'ShaderCompiler' ] = app_renderer.getCurrentValue( 'shader', 'compiler' )
+  app_global_vars [ 'ShaderDefines' ] = app_renderer.getCurrentValue( 'shader', 'defines' )
+  app_global_vars [ 'TEX' ] = app_renderer.getCurrentValue( 'texture', 'extension' )
+  app_global_vars [ 'SLO' ] = app_renderer.getCurrentValue( 'shader', 'extension' )
   
-  print 'TextureSearchPath = %s' % app_global_vars[ 'TextureSearchPath' ]
-  print 'ShaderSearchPath = %s' % app_global_vars[ 'ShaderSearchPath' ]
-  print 'ArchiveSearchPath = %s' % app_global_vars[ 'ArchiveSearchPath' ]
-  print 'Renderer = %s' % app_global_vars[ 'Renderer' ]
+  if DEBUG_MODE :
+    print 'TextureSearchPath = %s' % app_global_vars[ 'TextureSearchPath' ]
+    print 'ShaderSearchPath = %s' % app_global_vars[ 'ShaderSearchPath' ]
+    print 'ArchiveSearchPath = %s' % app_global_vars[ 'ArchiveSearchPath' ]
+    print 'Renderer = %s' % app_global_vars[ 'Renderer' ]
   
   #app_global_vars[ 'RibPath' ] = ''
   #app_global_vars[ 'DisplayPath' ] = ''
@@ -171,10 +173,19 @@ def main ():
 #
 #
 if __name__ == "__main__":
-  #safeEffects = QtCore.QT_VERSION >= 0x40600 and QtCore.PYQT_VERSION > 0x40704
-  print sys.version
-  print ( "QT_VERSION = %0X" ) % QtCore.QT_VERSION
-  print ( "PYQT_VERSION = %0X" ) % QtCore.PYQT_VERSION
+  #
+  print '* meShaderEd version %s' % version
+  
+  if len( sys.argv ) > 1 :
+    if sys.argv[1].lower() == '-debug' or sys.argv[1].lower() == '-d':
+      print '>> Running in DEBUG mode ...'
+      DEBUG_MODE = True
+  
+  if DEBUG_MODE :
+    #safeEffects = QtCore.QT_VERSION >= 0x40600 and QtCore.PYQT_VERSION > 0x40704
+    print '* Python %s' % sys.version
+    print '* QT_VERSION = %0X' % QtCore.QT_VERSION
+    print '* PYQT_VERSION = %0X' % QtCore.PYQT_VERSION
   
   if ( sys.platform == 'win32' ) :  
     #pass

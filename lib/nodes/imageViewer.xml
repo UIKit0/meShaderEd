@@ -19,4 +19,8 @@ self.imageName = self.getInputParamValueByName ( 'image' )
 
 ]]>
 	</param_code>
+	<result><![CDATA[
+	  $(output) = $(input)
+	  ]]>
+	</code>
 </node>

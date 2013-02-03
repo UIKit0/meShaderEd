@@ -10,7 +10,7 @@ from PyQt4 import QtCore
 from core.node import Node
 from core.nodeParam import NodeParam
 
-from global_vars import app_global_vars
+from global_vars import app_global_vars, DEBUG_MODE
 from core.node_global_vars import node_global_vars
 #
 # RIBNode
@@ -22,7 +22,14 @@ class RIBCodeNode ( Node ):
     #
     Node.__init__ ( self, xml_node )
     self.ribName = ''
-    print ">> RIBCodeNode __init__" 
+    #print ">> RIBCodeNode __init__" 
+  #
+  #
+  def copy ( self ):
+    if DEBUG_MODE : print '>> RIBCodeNode::copy (%s)' % self.label
+    newNode = RIBCodeNode()
+    self.copySetup ( newNode )                                
+    return newNode 
   #
   #    
   def getInputParamValueByName ( self, name ):
@@ -40,9 +47,9 @@ class RIBCodeNode ( Node ):
       #  self.computed_code += link.srcNode.computed_code
       
       if link.srcNode.type in [ 'rib', 'rib_code' ] :
-        result = '## start code from :' + link.srcNode.label
-        result += link.srcNode.parseLocalVars ( link.srcNode.code )
-        result += '## end code from :' + link.srcNode.label
+        #result = '## start code from :' + link.srcNode.label
+        result = link.srcNode.parseLocalVars ( link.srcNode.code )
+        #result += '## end code from :' + link.srcNode.label
       else :
         result = link.srcNode.parseGlobalVars ( link.srcParam.getValueToStr () )
     else :
@@ -52,7 +59,7 @@ class RIBCodeNode ( Node ):
   #
   #
   def computeNode ( self ) :
-    print '>> RIBCodeNode (%s).computeNode' % self.label
+    #print '>> RIBCodeNode (%s).computeNode' % self.label
     #
     # inside code, imageName value can be assigned from different  
     # input parameters
@@ -81,7 +88,7 @@ class RIBCodeNode ( Node ):
           parserPos = parsedStr.find ( ')', globStart )
           local_var_name = parsedStr [ globStart : ( parserPos ) ]
           
-          print '-> found local var %s' % local_var_name
+          #print '-> found local var %s' % local_var_name
           
           param = self.getInputParamByName ( local_var_name ) 
           if param is not None :

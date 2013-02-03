@@ -17,14 +17,16 @@ class StringWidget ( ParamWidget ) :
   #
   #                 
   def buildGui ( self ):
-    
-    if self.param.subtype == 'selector': 
-      self.ui = Ui_StringWidget_selector ()
-    elif self.param.subtype == 'file':
-      self.ui = Ui_StringWidget_file () 
-    else:
-      self.ui = Ui_StringWidget_field () 
-       
+    #
+    if not self.ignoreSubtype :
+      if self.param.subtype == 'selector': 
+        self.ui = Ui_StringWidget_selector ()
+      elif self.param.subtype == 'file':
+        self.ui = Ui_StringWidget_file () 
+      else:
+        self.ui = Ui_StringWidget_field () 
+    else :
+      self.ui = Ui_StringWidget_field ()    
     self.ui.setupUi ( self )
 #
 # Ui_StringWidget_field
@@ -58,8 +60,8 @@ class Ui_StringWidget_field ( object ):
   #                      
   def onStringEditEditingFinished ( self ):
     stringValue = self.stringEdit.text()
-    self.widget.param.value = str( stringValue )
-    self.widget.param.paramChanged ()
+    self.widget.param.setValue ( str( stringValue ) )
+
   #
   #      
   def updateGui ( self, value ): 
@@ -104,9 +106,9 @@ class Ui_StringWidget_selector ( object ):
   def onCurrentIndexChanged ( self, idx ):
     pass
     stringValue = self.selector.itemData ( idx ).toString()
-    print ">> Ui_StringWidget_selector idx = %d setValue = %s" % ( idx, stringValue )
-    self.widget.param.value = str( stringValue )
-    self.widget.param.paramChanged ()
+    #print ">> Ui_StringWidget_selector idx = %d setValue = %s" % ( idx, stringValue )
+    self.widget.param.setValue ( str( stringValue ) )
+
   #
   #      
   def updateGui ( self, setValue ): 
@@ -162,7 +164,7 @@ class Ui_StringWidget_file ( object ):
   def onStringEditEditingFinished ( self ):
     stringValue = self.stringEdit.text()
     self.widget.param.value = str( stringValue )
-    self.widget.param.paramChanged ()
+    #self.widget.param.paramChanged ()
   #
   #      
   def onBrowseFile ( self ):
@@ -174,7 +176,7 @@ class Ui_StringWidget_file ( object ):
       print "label = %s value = %s" % ( label, value )
       typeFilter += ( label + ' ' + value + ';;' )
       #self.selector.addItem ( label, value )
-    print '>> Ui_StringWidget_file typeFilter = %s' % typeFilter   
+    #print '>> Ui_StringWidget_file typeFilter = %s' % typeFilter   
     
     #from meShaderEd import app_settings
     from global_vars import app_global_vars
@@ -183,8 +185,7 @@ class Ui_StringWidget_file ( object ):
     
     filename = QtGui.QFileDialog.getOpenFileName( self.widget, "Select file", curDir, typeFilter )
     if filename != '' : 
-      self.widget.param.value = str( filename )
-      self.widget.param.paramChanged ()
+      self.widget.param.setValue ( str( filename ) )
       self.updateGui ( self.widget.param.value )
   #
   #      

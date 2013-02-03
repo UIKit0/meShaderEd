@@ -40,4 +40,8 @@ if self.getInputParamByName ( 'selector' ).value == 'image7': self.imageName = s
 
 ]]>
 	</param_code>
+	<result><![CDATA[
+	  $(output) = $(input)
+	  ]]>
+	</code>
 </node>

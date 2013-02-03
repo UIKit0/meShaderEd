@@ -10,7 +10,7 @@ from PyQt4 import QtCore
 from core.node import Node
 from core.nodeParam import NodeParam
 
-from global_vars import app_global_vars
+from global_vars import app_global_vars, DEBUG_MODE
 from core.node_global_vars import node_global_vars
 #
 # RIBNode
@@ -22,7 +22,14 @@ class RIBNode ( Node ):
     #
     Node.__init__ ( self, xml_node )
     self.ribName = ''
-    print ">> RIBNode __init__" 
+    #print ">> RIBNode __init__" 
+  #
+  #
+  def copy ( self ):
+    if DEBUG_MODE : print '>> RIBNode::copy (%s)' % self.label
+    newNode = RIBNode()
+    self.copySetup ( newNode )                                
+    return newNode 
   #
   #    
   def getInputParamValueByName ( self, name ):
@@ -40,9 +47,9 @@ class RIBNode ( Node ):
       #  self.computed_code += link.srcNode.computed_code
       
       if link.srcNode.type in [ 'rib', 'rib_code' ] :
-        result = '## start code from :' + link.srcNode.label
-        result += link.srcNode.parseLocalVars ( link.srcNode.code )
-        result += '## end code from :' + link.srcNode.label
+        #result = '## start code from :' + link.srcNode.label
+        result = link.srcNode.parseLocalVars ( link.srcNode.code )
+        #result += '## end code from :' + link.srcNode.label
       else :
         result = link.srcNode.parseGlobalVars ( link.srcParam.getValueToStr () )
     else :
@@ -52,7 +59,7 @@ class RIBNode ( Node ):
   #
   #
   def computeNode ( self ) :
-    print '>> RIBNode (%s).computeNode' % self.label
+    #print '>> RIBNode (%s).computeNode' % self.label
     #
     # inside code, imageName value can be assigned from different  
     # input parameters
@@ -80,14 +87,10 @@ class RIBNode ( Node ):
     
     print '>> RIBNode renderCmd = %s' %  ' '.join( renderCmd ) 
     
-    import subprocess, errno
-    
     # call the process
-    try:
-    	retval = subprocess.call( renderCmd, 0, None, None )
-    except OSError, e:
-    	if e.errno != errno.EINTR:
-    		raise
+    from core.meCommon import launchProcess
+    
+    launchProcess ( renderCmd )
     
     return self.ribName
   #
@@ -111,7 +114,7 @@ class RIBNode ( Node ):
           parserPos = parsedStr.find ( ')', globStart )
           local_var_name = parsedStr [ globStart : ( parserPos ) ]
           
-          print '-> found local var %s' % local_var_name
+          # print '-> found local var %s' % local_var_name
           
           param = self.getInputParamByName ( local_var_name ) 
           if param is not None :
