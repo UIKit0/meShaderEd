@@ -1,0 +1,16 @@
+<?xml version="1.0"?> 
+
+<node name="normalToColor" type="rsl_code">
+	<help>Normal to color converter.</help>
+	<input>
+		<property name="inNormal" type="normal" default="normal (0, 1, 0)" />
+	</input>
+	<output>
+		<property name="outColor" type="color"/>
+	</output>
+	<code>
+	<![CDATA[
+	$(outColor) = color( $(inNormal) );
+	]]>
+	</code>
+</node>

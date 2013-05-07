@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1113</width>
-    <height>886</height>
+    <width>874</width>
+    <height>611</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -70,7 +70,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1113</width>
+     <width>874</width>
      <height>19</height>
     </rect>
    </property>
@@ -90,6 +90,18 @@
     <property name="title">
      <string>File</string>
     </property>
+    <widget class="QMenu" name="menuRecent_Projects">
+     <property name="title">
+      <string>Recent Projects</string>
+     </property>
+     <addaction name="separator"/>
+    </widget>
+    <widget class="QMenu" name="menuRecent_Networks">
+     <property name="title">
+      <string>Recent Networks</string>
+     </property>
+     <addaction name="separator"/>
+    </widget>
     <addaction name="actionNew"/>
     <addaction name="actionOpen"/>
     <addaction name="actionSave"/>
@@ -98,6 +110,9 @@
     <addaction name="separator"/>
     <addaction name="actionImport"/>
     <addaction name="actionExport"/>
+    <addaction name="separator"/>
+    <addaction name="menuRecent_Projects"/>
+    <addaction name="menuRecent_Networks"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -114,6 +129,10 @@
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
     <addaction name="separator"/>
+    <addaction name="actionSelectAll"/>
+    <addaction name="actionSelectBelow"/>
+    <addaction name="actionSelectAbove"/>
+    <addaction name="separator"/>
     <addaction name="actionCopy"/>
     <addaction name="actionCut"/>
     <addaction name="actionPaste"/>
@@ -127,7 +146,7 @@
    </widget>
    <widget class="QMenu" name="menuCommand">
     <property name="enabled">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
     <property name="font">
      <font>
@@ -138,8 +157,21 @@
     <property name="title">
      <string>Command</string>
     </property>
-    <addaction name="actionBuild"/>
-    <addaction name="actionRender"/>
+    <widget class="QMenu" name="menuCreateNode">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="title">
+      <string>Create Node</string>
+     </property>
+     <addaction name="separator"/>
+    </widget>
+    <addaction name="menuCreateNode"/>
+    <addaction name="actionEditNode"/>
+    <addaction name="actionExportShader"/>
+    <addaction name="actionRenderPreview"/>
+    <addaction name="actionShowSwatch"/>
+    <addaction name="actionHideSwatch"/>
    </widget>
    <widget class="QMenu" name="menuWindow">
     <property name="font">
@@ -329,6 +361,15 @@
    </attribute>
    <widget class="NodeLibraryView" name="project_ctl"/>
   </widget>
+  <widget class="QDockWidget" name="dockSwatch">
+   <property name="windowTitle">
+    <string>Node Preview</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="NodeSwatchParam" name="swatchParam_ctl"/>
+  </widget>
   <action name="actionRendererOptions">
    <property name="text">
     <string>Renderer ...</string>
@@ -427,6 +468,9 @@
    <property name="text">
     <string>Copy</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
   </action>
   <action name="actionCut">
    <property name="enabled">
@@ -439,6 +483,9 @@
    <property name="text">
     <string>Cut</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
+   </property>
   </action>
   <action name="actionPaste">
    <property name="enabled">
@@ -450,6 +497,9 @@
    </property>
    <property name="text">
     <string>Paste</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+V</string>
    </property>
   </action>
   <action name="actionUndo">
@@ -476,20 +526,26 @@
     <string>Redo</string>
    </property>
   </action>
-  <action name="actionBuild">
+  <action name="actionEditNode">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
-    <string>Build</string>
+    <string>Edit Node ...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
    </property>
   </action>
-  <action name="actionRender">
+  <action name="actionRenderPreview">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
-    <string>Render</string>
+    <string>Render Preview</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
    </property>
   </action>
   <action name="actionShowNodes">
@@ -709,11 +765,66 @@
     <string>Ctrl+Shift+D</string>
    </property>
   </action>
+  <action name="actionSelectAll">
+   <property name="text">
+    <string>Select All</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
+   </property>
+  </action>
+  <action name="actionSelectBelow">
+   <property name="text">
+    <string>Select below</string>
+   </property>
+   <property name="toolTip">
+    <string>Select hierarchy below</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Down</string>
+   </property>
+  </action>
+  <action name="actionSelectAbove">
+   <property name="text">
+    <string>Select above</string>
+   </property>
+   <property name="toolTip">
+    <string>Select hierarchy above</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Up</string>
+   </property>
+  </action>
+  <action name="actionExportShader">
+   <property name="text">
+    <string>Export Shader ...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
+   </property>
+  </action>
+  <action name="actionShowSwatch">
+   <property name="text">
+    <string>Show Swatch</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="actionHideSwatch">
+   <property name="text">
+    <string>Hide Swatch</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+H</string>
+   </property>
+  </action>
   <zorder>dockNodes</zorder>
   <zorder>dockPreview</zorder>
   <zorder>dockParam</zorder>
   <zorder>dockGeom</zorder>
   <zorder>dockProject</zorder>
+  <zorder>dockSwatch</zorder>
  </widget>
  <customwidgets>
   <customwidget>
@@ -743,6 +854,12 @@
    <class>GeomViewWidget</class>
    <extends>QWidget</extends>
    <header>geomViewWidget</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>NodeSwatchParam</class>
+   <extends>QWidget</extends>
+   <header>nodeSwatchParam</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
@@ -1070,6 +1187,182 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionCopy</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>onCopy()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>556</x>
+     <y>377</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionCut</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>onCut()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>556</x>
+     <y>377</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSelectAll</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>onSelectAll()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>556</x>
+     <y>377</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionPaste</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>onPaste()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>556</x>
+     <y>377</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSelectAbove</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>onSelectAbove()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>556</x>
+     <y>377</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSelectBelow</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>onSelectBelow()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>556</x>
+     <y>377</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionEditNode</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>onEditNode()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>436</x>
+     <y>305</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionExportShader</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>onExportShader()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>436</x>
+     <y>305</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionRenderPreview</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>onRenderPreview()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>436</x>
+     <y>305</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionShowSwatch</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>onShowSwatch()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>436</x>
+     <y>305</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionHideSwatch</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>onHideSwatch()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>436</x>
+     <y>305</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>onProjectSetup()</slot>
@@ -1092,5 +1385,16 @@
   <slot>onImport()</slot>
   <slot>onDuplicate()</slot>
   <slot>onDuplicateWithLinks()</slot>
+  <slot>onSelectAll()</slot>
+  <slot>onCopy()</slot>
+  <slot>onCut()</slot>
+  <slot>onPaste()</slot>
+  <slot>onSelectAbove()</slot>
+  <slot>onSelectBelow()</slot>
+  <slot>onEditNode()</slot>
+  <slot>onExportShader()</slot>
+  <slot>onRenderPreview()</slot>
+  <slot>onShowSwatch()</slot>
+  <slot>onHideSwatch()</slot>
  </slots>
 </ui>

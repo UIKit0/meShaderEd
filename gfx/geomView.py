@@ -13,10 +13,11 @@ from OpenGL.GLU import *
 from PyQt4 import QtCore, QtGui 
 from PyQt4.QtOpenGL import *
 #
-#
+# GeomView
 #
 class GeomView ( QGLWidget ):
   #
+  # __init__
   #
   def __init__ ( self, parent ):
     #
@@ -67,6 +68,7 @@ glFlush()
     glLoadIdentity()
     gluPerspective(40.0, 1.0, 1.0, 30.0)
   #
+  # resizeGL
   #
   def resizeGL ( self, w, h) :
     #
@@ -80,6 +82,7 @@ glFlush()
     #gluPerspective(40.0, 1.0, 1.0, 30.0)
     
   #
+  # paintGL
   #
   def paintGL ( self ) :
     #
@@ -108,12 +111,14 @@ glFlush()
     exec self.geom_code
 
   #
+  # keyPressEvent
   #
   def keyPressEvent ( self, event ) : 
     #
     print ">> GeomeView: keyPressEvent"
     QtGui.QGraphicsView.keyPressEvent ( self, event)
   #
+  # wheelEvent
   #  
   def wheelEvent ( self, event ):
     #
@@ -127,6 +132,7 @@ glFlush()
     if factor < 0.07 or factor > 100: return
     self.scale ( scaleFactor, scaleFactor )      
   #
+  # mousePressEvent
   #
   def mousePressEvent ( self, event ):
     #
@@ -139,6 +145,7 @@ glFlush()
         return
     QtGui.QGraphicsView.mousePressEvent ( self, event )        
   #
+  # mouseDoubleClickEvent
   #
   def mouseDoubleClickEvent ( self, event ):
     #
@@ -146,6 +153,7 @@ glFlush()
     self.emit ( QtCore.SIGNAL( 'mouseDoubleClickEvent' ) ) 
     QtGui.QGraphicsView.mouseDoubleClickEvent ( self, event )
   #
+  # mouseMoveEvent
   #  
   def mouseMoveEvent ( self, event ):
     #
@@ -160,6 +168,7 @@ glFlush()
     else :
       QtGui.QGraphicsView.mouseMoveEvent ( self, event )        
   #
+  # mouseReleaseEvent
   #  
   def mouseReleaseEvent ( self, event ):        
     #
@@ -169,6 +178,7 @@ glFlush()
       self.panStartPos = None
     QtGui.QGraphicsView.mouseReleaseEvent ( self, event )   
   #
+  # viewportEvent
   #
   def viewportEvent( self, event ):
     #case QEvent::TouchBegin:
@@ -179,6 +189,7 @@ glFlush()
     return QtGui.QGraphicsView.viewportEvent ( self, event )
     
   #
+  # setImage
   #
   def setImage ( self, imageName ) :
     #
@@ -222,6 +233,7 @@ glFlush()
     self.scene().setSceneRect ( 0, 0, wi, hi )
     self.scene().update()
   #
+  # drawBackground
   #
   def drawBackground( self, painter, rect ):
     #
