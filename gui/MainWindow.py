@@ -195,7 +195,7 @@ class MainWindow ( QtGui.QMainWindow ) :
     # temporary hide unused panels
     #self.removeDockWidget ( self.ui.dockGeom )
     #self.removeDockWidget ( self.ui.dockSwatch )
-    self.ui.dockGeom.hide ()
+    #self.ui.dockGeom.hide ()
     self.ui.dockSwatch.hide ()
 
     self.ui.dockNodes.raise_ ()

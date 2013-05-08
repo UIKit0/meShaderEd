@@ -718,26 +718,29 @@ def createParamFromXml ( xml_param, isRibParam, isInput = True ) :
   from core.nodeParam import TextNodeParam
   from core.nodeParam import TransformNodeParam
   from core.nodeParam import ImageNodeParam
+  from core.nodeParam import GeomNodeParam
+  
   from core.controlParam import ControlParam
 
   param = None
-  createParamTable = {   'float':FloatNodeParam
-                          ,'int':IntNodeParam
-                          ,'color':ColorNodeParam
-                          ,'string':StringNodeParam
-                          ,'normal':NormalNodeParam
-                          ,'point':PointNodeParam
-                          ,'vector':VectorNodeParam
-                          ,'matrix':MatrixNodeParam
-                          ,'surface':SurfaceNodeParam
-                          ,'displacement':DisplacementNodeParam
-                          ,'volume':VolumeNodeParam
-                          ,'light':LightNodeParam
-                          ,'rib':RibNodeParam
-                          ,'text':TextNodeParam
-                          ,'transform':TransformNodeParam
-                          ,'image':ImageNodeParam
-                          ,'control':ControlParam
+  createParamTable = {     'float'        : FloatNodeParam
+                          ,'int'          : IntNodeParam
+                          ,'color'        : ColorNodeParam
+                          ,'string'       : StringNodeParam
+                          ,'normal'       : NormalNodeParam
+                          ,'point'        : PointNodeParam
+                          ,'vector'       : VectorNodeParam
+                          ,'matrix'       : MatrixNodeParam
+                          ,'surface'      : SurfaceNodeParam
+                          ,'displacement' : DisplacementNodeParam
+                          ,'volume'       : VolumeNodeParam
+                          ,'light'        : LightNodeParam
+                          ,'rib'          : RibNodeParam
+                          ,'text'         : TextNodeParam
+                          ,'transform'    : TransformNodeParam
+                          ,'image'        : ImageNodeParam
+                          ,'geom'         : GeomNodeParam
+                          ,'control'      : ControlParam
                        }
   param_type = str( xml_param.attributes ().namedItem ( 'type' ).nodeValue () )
   if param_type in createParamTable.keys () :

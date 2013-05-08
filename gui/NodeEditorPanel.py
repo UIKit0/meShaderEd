@@ -506,7 +506,7 @@ class NodeEditorPanel ( QtGui.QDialog ) :
     typeDialog.type_comboBox = QtGui.QComboBox ( typeDialog )
     for label in [ 'float', 'int', 'color', 'string', 'normal', 'point', 'vector', 'matrix',
                    'surface', 'displacement', 'volume', 'light',
-                   'rib', 'text', 'transform','image'  ]  :
+                   'rib', 'text', 'transform','image', 'geom'  ]  :
       typeDialog.type_comboBox.addItem ( label )
     typeDialog.verticalLayout.addWidget ( typeDialog.type_comboBox )
 

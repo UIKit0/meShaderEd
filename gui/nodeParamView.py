@@ -57,6 +57,7 @@ class NodeParamView ( QtGui.QWidget ) :
                           ,'matrix'       : MatrixWidget
                           ,'text'         : TextWidget
                           ,'control'      : ControlWidget
+                          ,'geom'         : StringWidget
                         }
     self.buildGui ()
     self.updateGui ()

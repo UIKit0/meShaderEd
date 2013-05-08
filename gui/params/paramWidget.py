@@ -59,7 +59,7 @@ class ParamWidget ( QtGui.QWidget ) :
     # add 'isShaderParam' check box only for RSL nodes
     #
     if self.gfxNode is not None :
-      if not self.gfxNode.node.type in [ 'rib', 'rib_code', 'image', 'swatch' ]:
+      if not self.gfxNode.node.type in [ 'rib', 'rib_code', 'image', 'swatch', 'geom' ]:
         if self.param.provider != 'attribute' :
 
           self.check = QtGui.QCheckBox ( self )
@@ -68,7 +68,7 @@ class ParamWidget ( QtGui.QWidget ) :
           self.check.setToolTip ( 'Use as Shader parameter' )
 
           self.check.setChecked ( self.param.shaderParam )
-          self.connect ( self.check, QtCore.SIGNAL ('stateChanged(int)'), self.onShaderParamChanged )
+          self.connect ( self.check, QtCore.SIGNAL ( 'stateChanged(int)' ), self.onShaderParamChanged )
 
           self.hl.addWidget ( self.check )
         else :

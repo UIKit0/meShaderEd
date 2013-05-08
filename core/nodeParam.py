@@ -68,7 +68,7 @@ class NodeParam ( QtCore.QObject ) :
   #
   def copySetup ( self, newParam ) :
     #
-    if DEBUG_MODE : print '>> NodeParam::copySetup (%s)' % self.label
+    if DEBUG_MODE : print '>> NodeParam( %s ).copySetup ' % self.label
     newParam.id = self.id
     newParam.name = self.name
     newParam.label = self.label
@@ -1159,3 +1159,27 @@ class ImageNodeParam ( NodeParam ) :
         rangeList.append ( (label, value) )
 
     return rangeList
+#
+# Geometry
+# 
+class GeomNodeParam ( NodeParam ) :    
+  #
+  # __init__
+  #
+  def __init__ ( self, xml_param = None, isRibParam = False ) :
+    #
+    NodeParam.__init__ ( self, xml_param, isRibParam )  
+    self.type = 'geom' 
+  #
+  # encodedTypeStr
+  #
+  def encodedTypeStr ( self ) : return 'G'
+  #
+  # copy
+  #
+  def copy ( self ) :
+    #
+    newParam = GeomNodeParam ()
+    self.copySetup ( newParam )
+    return newParam
+    
