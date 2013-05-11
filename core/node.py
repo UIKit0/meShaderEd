@@ -699,28 +699,30 @@ class Node ( QtCore.QObject ) :
     return newNode
 #
 # createParamFromXml
+#
 # name and type must be specified in xml
 #
 def createParamFromXml ( xml_param, isRibParam, isInput = True ) :
-  from core.nodeParam import FloatNodeParam
-  from core.nodeParam import IntNodeParam
-  from core.nodeParam import ColorNodeParam
-  from core.nodeParam import StringNodeParam
-  from core.nodeParam import NormalNodeParam
-  from core.nodeParam import PointNodeParam
-  from core.nodeParam import VectorNodeParam
-  from core.nodeParam import MatrixNodeParam
-  from core.nodeParam import SurfaceNodeParam
-  from core.nodeParam import DisplacementNodeParam
-  from core.nodeParam import VolumeNodeParam
-  from core.nodeParam import LightNodeParam
-  from core.nodeParam import RibNodeParam
-  from core.nodeParam import TextNodeParam
-  from core.nodeParam import TransformNodeParam
-  from core.nodeParam import ImageNodeParam
-  from core.nodeParam import GeomNodeParam
-  
-  from core.controlParam import ControlParam
+  #
+  from core.params.floatNodeParam        import FloatNodeParam
+  from core.params.intNodeParam          import IntNodeParam
+  from core.params.colorNodeParam        import ColorNodeParam
+  from core.params.stringNodeParam       import StringNodeParam
+  from core.params.normalNodeParam       import NormalNodeParam
+  from core.params.pointNodeParam        import PointNodeParam
+  from core.params.vectorNodeParam       import VectorNodeParam
+  from core.params.matrixNodeParam       import MatrixNodeParam
+  from core.params.surfaceNodeParam      import SurfaceNodeParam
+  from core.params.displacementNodeParam import DisplacementNodeParam
+  from core.params.volumeNodeParam       import VolumeNodeParam
+  from core.params.lightNodeParam        import LightNodeParam
+  from core.params.ribNodeParam          import RibNodeParam
+  from core.params.textNodeParam         import TextNodeParam
+  from core.params.transformNodeParam    import TransformNodeParam
+  from core.params.imageNodeParam        import ImageNodeParam
+  from core.params.controlParam          import ControlParam
+  from core.params.shaderNodeParam       import ShaderNodeParam
+  from core.params.geomNodeParam         import GeomNodeParam
 
   param = None
   createParamTable = {     'float'        : FloatNodeParam
@@ -739,8 +741,9 @@ def createParamFromXml ( xml_param, isRibParam, isInput = True ) :
                           ,'text'         : TextNodeParam
                           ,'transform'    : TransformNodeParam
                           ,'image'        : ImageNodeParam
-                          ,'geom'         : GeomNodeParam
                           ,'control'      : ControlParam
+                          ,'shader'       : ShaderNodeParam
+                          ,'geom'         : GeomNodeParam
                        }
   param_type = str( xml_param.attributes ().namedItem ( 'type' ).nodeValue () )
   if param_type in createParamTable.keys () :

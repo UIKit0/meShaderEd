@@ -1,8 +1,5 @@
 #===============================================================================
 # nodeNetwork.py
-#
-#
-#
 #===============================================================================
 import os, sys
 
@@ -10,14 +7,14 @@ from PyQt4 import QtCore, QtXml
 from PyQt4.QtCore import QDir, QFile, QVariant
 
 from node import *
-from rslNode import RSLNode
-from ribCodeNode import RIBCodeNode
-from ribNode import RIBNode
-from imageNode import ImageNode
-from connectorNode import ConnectorNode
-from noteNode import NoteNode
-from geomNode import GeomNode
-from swatchNode import SwatchNode
+from nodes.rslNode import RSLNode
+from nodes.ribCodeNode import RIBCodeNode
+from nodes.ribNode import RIBNode
+from nodes.imageNode import ImageNode
+from nodes.connectorNode import ConnectorNode
+from nodes.noteNode import NoteNode
+from nodes.swatchNode import SwatchNode
+from nodes.geomNode import GeomNode
 
 from nodeParam import NodeParam
 from nodeLink import NodeLink
@@ -298,7 +295,7 @@ class NodeNetwork ( QtCore.QObject ) :
       node = self.addNodeFromXML ( xml_node )
 
     xml_linkList = root.elementsByTagName ( 'link' )
-    for i in range( 0, xml_linkList.length () ) :
+    for i in range ( 0, xml_linkList.length () ) :
       xml_link = xml_linkList.item ( i )
       link = NodeLink ( self, xml_link )
       #link.printInfo ()
@@ -433,8 +430,8 @@ def createNodeFromXML ( xml_node ) :
                      ,'volume'      : RSLNode
                      ,'connector'   : ConnectorNode
                      ,'note'        : NoteNode
-                     ,'geom'        : GeomNode 
                      ,'swatch'      : SwatchNode
+                     ,'geom'        : GeomNode 
                     }
 
   node_type = str ( xml_node.attributes ().namedItem ( 'type' ).nodeValue () )

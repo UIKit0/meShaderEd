@@ -10,7 +10,7 @@ from global_vars import app_global_vars, DEBUG_MODE
 #
 # GeomNode
 #
-class GeomNode ( Node ):
+class GeomNode ( Node ) :
   #
   # __init__
   #

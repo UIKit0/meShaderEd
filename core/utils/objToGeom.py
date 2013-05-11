@@ -1,5 +1,5 @@
 #===============================================================================
-# objToRib.py
+# objToGeom.py
 #===============================================================================
 import os, sys
 from PyQt4 import QtCore
@@ -8,9 +8,9 @@ from global_vars import app_global_vars, DEBUG_MODE
 from objReader import ObjReader
 
 #
-# ObjToRib
+# ObjToGeom
 #
-class ObjToRib ( ObjReader ) :
+class ObjToGeom ( ObjReader ) :
   #
   # __init__
   #
@@ -18,10 +18,11 @@ class ObjToRib ( ObjReader ) :
     #
     ObjReader.__init__ ( self, objFileName )
     
-    self.rib = None
+    self.geom = None
+
   #
-  # readObjFile
+  # readObj
   #
-  def readObjFile ( self ) :
+  def readObj ( self ) :
     #
-    if DEBUG_MODE : print '>> ObjToRib.readObjFile ( %s )' % self.objFileName
+    if DEBUG_MODE : print '>> ObjToGeom.readObj ( %s )' % self.objFileName

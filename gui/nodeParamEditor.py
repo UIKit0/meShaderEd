@@ -56,6 +56,7 @@ class NodeParamEditor ( QtGui.QWidget ) :
                           ,'matrix'       : MatrixWidget
                           ,'text'         : TextWidget
                           ,'control'      : ControlWidget
+                          ,'shader'       : StringWidget
                           ,'geom'         : StringWidget
                         }
 
@@ -194,6 +195,7 @@ class NodeParamEditor ( QtGui.QWidget ) :
     self.removeValueWidget()
     self.disconnectSignals()
     self.param = param
+    
     if self.param is not None :
       #import copy
       self.param_default = self.param.copy() # duplicate param for default value editing
@@ -212,8 +214,7 @@ class NodeParamEditor ( QtGui.QWidget ) :
 
       doc = QtGui.QTextDocument ()
       help_text = ''
-      if self.param.help != None :
-        help_text = self.param.help
+      if self.param.help != None : help_text = self.param.help
 
       doc.setPlainText ( help_text )
       layout = QtGui.QPlainTextDocumentLayout ( doc )
