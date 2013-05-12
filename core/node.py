@@ -10,6 +10,7 @@ from core.node_global_vars import node_global_vars
 # Node
 #
 class Node ( QtCore.QObject ) :
+  #
   id = 0
   #
   # __init__
@@ -71,8 +72,8 @@ class Node ( QtCore.QObject ) :
   #
   @classmethod
   def build ( cls ) :
-    node = cls ()
     # set unique id while building
+    node = cls ()
     Node.id += 1
     node.id = Node.id
     return node
@@ -80,6 +81,13 @@ class Node ( QtCore.QObject ) :
   # copy
   #
   def copy ( self ) : assert 0, 'copy needs to be implemented!'
+  #
+  # updateNode
+  #
+  def updateNode ( self ) : 
+    #
+    if DEBUG_MODE : print '>> Node( %s ).updateNode' % self.label
+    self.emit ( QtCore.SIGNAL ( 'nodeUpdated' ), self )
   #
   # addChild
   #
@@ -214,11 +222,10 @@ class Node ( QtCore.QObject ) :
   #
   # getLinkedSrcNode
   #
+  def getLinkedSrcNode ( self, param ) :
   # returns node linked to input parameter param,
   # skipping all ConnectorNode
   #
-  def getLinkedSrcNode ( self, param ) :
-    #
     if DEBUG_MODE : print '* getLinkedSrcNode node = %s param = %s' % ( self.label, param.label )
     srcNode = None
     srcParam = None
@@ -253,6 +260,7 @@ class Node ( QtCore.QObject ) :
   # getInputParamByName
   #
   def getInputParamByName ( self, name ) :
+    #
     result = None
     for param in self.inputParams :
       if param.name == name :
@@ -263,6 +271,7 @@ class Node ( QtCore.QObject ) :
   # getOutputParamByName
   #
   def getOutputParamByName ( self, name ) :
+    #
     result = None
     for param in self.outputParams :
       if param.name == name :
@@ -345,6 +354,7 @@ class Node ( QtCore.QObject ) :
   # getOutputLinkByID
   #
   def getOutputLinkByID ( self, id ) :
+    #
     result = None
     for link in self.getOutputLinks () :
       if link.id == id :
@@ -390,14 +400,16 @@ class Node ( QtCore.QObject ) :
   # getParamName
   #
   def getParamName ( self, param ) :
+    #
     result = param.name
-    if not ( param.provider == 'primitive' or param.isRibParam ) :
+    if not ( param.provider in [ 'primitive', 'attribute' ] or param.isRibParam ) :
       result = self.getInstanceName () + '_' + param.name
     return result
   #
   # getParamDeclaration
   #
   def getParamDeclaration ( self, param ) :
+    #
     result = ''
     result += param.typeToStr() + ' '
     result += self.getParamName ( param ) + ' = '

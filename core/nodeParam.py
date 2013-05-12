@@ -36,6 +36,7 @@ class NodeParam ( QtCore.QObject ) :
 
     self.isRibParam = isRibParam
     self.display = True
+    self.enabled = True
 
     # extra parameter description
     self.detail = '' # variable, uniform
@@ -51,9 +52,9 @@ class NodeParam ( QtCore.QObject ) :
     self.arraySize = None # otherwise, it should be a list of values ( or empty list )
     
     self.defaultArray = []
-    self.spaceDefArray = []
     self.valueArray = []
-    self.spaceArray = []
+    #self.spaceArray = []
+    #self.spaceDefArray = []
 
     if xml_param != None : self.parseFromXML ( xml_param )
   #
@@ -90,11 +91,13 @@ class NodeParam ( QtCore.QObject ) :
     newParam.shaderParam = self.shaderParam
     newParam.isRibParam = self.isRibParam
     newParam.display = self.display
+    newParam.enabled = self.enabled
     newParam.detail = self.detail
     newParam.provider = self.provider
     newParam.subtype = self.subtype
     newParam.range = self.range
     newParam.space = self.space
+    newParam.spaceDef = self.spaceDef
 
     newParam.default = copy.deepcopy ( self.default )
     newParam.value = copy.deepcopy ( self.value )
@@ -102,6 +105,7 @@ class NodeParam ( QtCore.QObject ) :
   # typeToStr
   #
   def typeToStr ( self ) :
+    #
     str = self.detail + ' ' + self.type
     return str.lstrip ()
   #
@@ -187,9 +191,18 @@ class NodeParam ( QtCore.QObject ) :
     if not xml_param.attributes ().namedItem ( 'display' ).isNull () :
       self.display = xml_param.attributes ().namedItem ( 'display' ).nodeValue () == '1'
       
+    self.enabled = True
+    if not xml_param.attributes ().namedItem ( 'enabled' ).isNull () :
+      self.enabled = xml_param.attributes ().namedItem ( 'enabled' ).nodeValue () == '1'
     if not xml_param.attributes ().namedItem ( 'space' ).isNull () :
       space = str ( xml_param.attributes ().namedItem ( 'space' ).nodeValue () )
-      if space != '' : self.space = space
+      if space != '' :
+        self.space = space
+        self.spaceDef = space
+    if not xml_param.attributes ().namedItem ( 'spaceDef' ).isNull () :
+      spaceDef = str ( xml_param.attributes ().namedItem ( 'spaceDef' ).nodeValue () )
+      if spaceDef != '' :
+        self.spaceDef = space
 
     self.setDefaultFromStr ( xml_param.attributes ().namedItem ( 'default' ).nodeValue () )
 
@@ -217,6 +230,7 @@ class NodeParam ( QtCore.QObject ) :
     if self.type != None   : xmlnode.setAttribute ( 'type', self.type )
     if self.shaderParam    : xmlnode.setAttribute ( 'shaderParam', True )
     if not self.display    : xmlnode.setAttribute ( 'display', False )
+    if not self.enabled    : xmlnode.setAttribute ( 'enabled', False )
     if self.detail != ''   : xmlnode.setAttribute ( 'detail', self.detail )
     if self.provider != '' : xmlnode.setAttribute ( 'provider', self.provider )
     # ui decorative parameters
@@ -225,6 +239,9 @@ class NodeParam ( QtCore.QObject ) :
     if self.space != None  :
       if self.space != ''  : xmlnode.setAttribute ( 'space', self.space )
     
+    # write default value space only if it differs from value space
+    if self.spaceDef != None  :
+      if self.spaceDef != '' and  self.spaceDef != self.space : xmlnode.setAttribute ( 'spaceDef', self.spaceDef )
     if self.default != None :
       value = self.getDefaultToStr ()
       if not self.type in [ 'rib', 'rib_code' ] : value = value.strip ( '\"' )

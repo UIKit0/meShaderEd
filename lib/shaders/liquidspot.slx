@@ -1,5 +1,5 @@
 lightsource
-AQSIS_V 1.4.2
+AQSIS_V 1.6.0
 
 
 segment Data
@@ -60,16 +60,16 @@ varying  point Pshad
 varying  float Pz
 varying  float Pz_width
 varying  color finalShadowColor
-varying  float b5::distance
-varying  float b5::pwc
-varying  float b5::b6::region
-varying  float b5::b6::mask
-varying  point b5::b7::PP
-varying  float b5::b7::x
-varying  float b5::b7::y
-varying  float b5::b7::pwx
-varying  float b5::b7::pwy
-uniform  float b5::b8::shadowsize[2]
+varying  float b33::distance
+varying  float b33::pwc
+varying  float b33::b34::region
+varying  float b33::b34::mask
+varying  point b33::b35::PP
+varying  float b33::b35::x
+varying  float b33::b35::y
+varying  float b33::b35::pwx
+varying  float b33::b35::pwy
+uniform  float b33::b36::shadowsize[2]
 
 
 segment Init
@@ -256,7 +256,7 @@ segment Code
 	pushv Pshad
 	zcomp
 	pop Pz
-	pushif 1e-06
+	pushif 1e-006
 	pushv dv
 	pushv Pz
 	fDv
@@ -314,8 +314,8 @@ segment Code
 	RS_GET
 	pushv L
 	length
-	pop b5::distance
-	pushv b5::distance
+	pop b33::distance
+	pushv b33::distance
 	pushif 1
 	pushif 0
 	pushif 0
@@ -327,7 +327,7 @@ segment Code
 	dotpp
 	divff
 	pop cosangle
-	pushif 1e-06
+	pushif 1e-006
 	pushv dv
 	pushv cosangle
 	fDv
@@ -341,9 +341,9 @@ segment Code
 	addff
 	pushif 0
 	max
-	pop b5::pwc
+	pop b33::pwc
 	pushv decay
-	pushv b5::distance
+	pushv b33::distance
 	pow
 	pushif 1
 	divff
@@ -356,11 +356,11 @@ segment Code
 	pop atten
 	pushv cosangle
 	pushif 2
-	pushv b5::pwc
+	pushv b33::pwc
 	mulff
 	pushv cosinside
 	addff
-	pushv b5::pwc
+	pushv b33::pwc
 	pushv cosoutside
 	addff
 	smoothstep
@@ -376,9 +376,9 @@ segment Code
 	RS_GET
 	RS_JZ 7
 	pushif 0
-	pop b5::b6::region
+	pop b33::b34::region
 	pushif 0
-	pop b5::b6::mask
+	pop b33::b34::mask
 	pushv Pz
 	pushv Pz_width
 	pushv endDistance1
@@ -396,7 +396,7 @@ segment Code
 	subff
 	smoothstep
 	subff
-	pop b5::b6::mask
+	pop b33::b34::mask
 	S_CLEAR
 	pushif 1
 	pushv startDistanceIntensity1
@@ -416,13 +416,13 @@ segment Code
 	pushv endDistanceIntensity1
 	pushv startDistanceIntensity1
 	fmix
-	pushv b5::b6::mask
+	pushv b33::b34::mask
 	mulff
-	pop b5::b6::mask
+	pop b33::b34::mask
 :8
 	RS_POP
-	pushv b5::b6::mask
-	pop b5::b6::region
+	pushv b33::b34::mask
+	pop b33::b34::region
 	pushv Pz
 	pushv Pz_width
 	pushv endDistance2
@@ -440,7 +440,7 @@ segment Code
 	subff
 	smoothstep
 	subff
-	pop b5::b6::mask
+	pop b33::b34::mask
 	S_CLEAR
 	pushif 1
 	pushv startDistanceIntensity2
@@ -460,15 +460,15 @@ segment Code
 	pushv endDistanceIntensity2
 	pushv startDistanceIntensity2
 	fmix
-	pushv b5::b6::mask
+	pushv b33::b34::mask
 	mulff
-	pop b5::b6::mask
+	pop b33::b34::mask
 :9
 	RS_POP
-	pushv b5::b6::mask
-	pushv b5::b6::region
+	pushv b33::b34::mask
+	pushv b33::b34::region
 	addff
-	pop b5::b6::region
+	pop b33::b34::region
 	pushv Pz
 	pushv Pz_width
 	pushv endDistance3
@@ -486,7 +486,7 @@ segment Code
 	subff
 	smoothstep
 	subff
-	pop b5::b6::mask
+	pop b33::b34::mask
 	S_CLEAR
 	pushif 1
 	pushv startDistanceIntensity3
@@ -506,16 +506,16 @@ segment Code
 	pushv endDistanceIntensity3
 	pushv startDistanceIntensity3
 	fmix
-	pushv b5::b6::mask
+	pushv b33::b34::mask
 	mulff
-	pop b5::b6::mask
+	pop b33::b34::mask
 :10
 	RS_POP
-	pushv b5::b6::mask
-	pushv b5::b6::region
+	pushv b33::b34::mask
+	pushv b33::b34::region
 	addff
-	pop b5::b6::region
-	pushv b5::b6::region
+	pop b33::b34::region
+	pushv b33::b34::region
 	pushv atten
 	mulff
 	pop atten
@@ -533,97 +533,97 @@ segment Code
 	setfp
 	pushv Pshad
 	divpp
-	pop b5::b7::PP
+	pop b33::b35::PP
 	pushv angle
 	tan
-	pushv b5::b7::PP
+	pushv b33::b35::PP
 	xcomp
 	divff
-	pop b5::b7::x
+	pop b33::b35::x
 	pushv angle
 	tan
-	pushv b5::b7::PP
+	pushv b33::b35::PP
 	ycomp
 	divff
-	pop b5::b7::y
-	pushif 1e-06
+	pop b33::b35::y
+	pushif 1e-006
 	pushv dv
-	pushv b5::b7::x
+	pushv b33::b35::x
 	fDv
 	mulff
 	abs
 	pushv du
-	pushv b5::b7::x
+	pushv b33::b35::x
 	fDu
 	mulff
 	abs
 	addff
 	pushif 0
 	max
-	pop b5::b7::pwx
-	pushif 1e-06
+	pop b33::b35::pwx
+	pushif 1e-006
 	pushv dv
-	pushv b5::b7::y
+	pushv b33::b35::y
 	fDv
 	mulff
 	abs
 	pushv du
-	pushv b5::b7::y
+	pushv b33::b35::y
 	fDu
 	mulff
 	abs
 	addff
 	pushif 0
 	max
-	pop b5::b7::pwy
-	pushv b5::b7::y
+	pop b33::b35::pwy
+	pushv b33::b35::y
 	pushv penumbraRatio
-	pushv b5::b7::pwy
+	pushv b33::b35::pwy
 	pushv bbn
 	addff
 	addff
 	pushv penumbraRatio
-	pushv b5::b7::pwy
+	pushv b33::b35::pwy
 	pushv bbn
 	subff
 	subff
 	smoothstep
-	pushv b5::b7::y
+	pushv b33::b35::y
 	pushv penumbraRatio
-	pushv b5::b7::pwy
+	pushv b33::b35::pwy
 	pushv tbn
 	addff
 	addff
 	pushv penumbraRatio
-	pushv b5::b7::pwy
+	pushv b33::b35::pwy
 	pushv tbn
 	subff
 	subff
 	smoothstep
 	pushif 1
 	subff
-	pushv b5::b7::x
+	pushv b33::b35::x
 	pushv penumbraRatio
-	pushv b5::b7::pwx
+	pushv b33::b35::pwx
 	pushv rbn
 	addff
 	addff
 	pushv penumbraRatio
-	pushv b5::b7::pwx
+	pushv b33::b35::pwx
 	pushv rbn
 	subff
 	subff
 	smoothstep
 	pushif 1
 	subff
-	pushv b5::b7::x
+	pushv b33::b35::x
 	pushv penumbraRatio
-	pushv b5::b7::pwx
+	pushv b33::b35::pwx
 	pushv lbn
 	addff
 	addff
 	pushv penumbraRatio
-	pushv b5::b7::pwx
+	pushv b33::b35::pwx
 	pushv lbn
 	subff
 	subff
@@ -652,19 +652,19 @@ segment Code
 	RS_JZ 15
 	pushif 5
 	pushif 0
-	ipop b5::b8::shadowsize
+	ipop b33::b36::shadowsize
 :15
 	RS_INVERSE
 	RS_JZ 14
 	pushis "resolution"
 	pushv shadowname
-	textureinfo b5::b8::shadowsize
+	textureinfo b33::b36::shadowsize
 	drop
 :14
 	RS_POP
 	pushv shadowblur
 	pushif 0
-	ipushv b5::b8::shadowsize
+	ipushv b33::b36::shadowsize
 	pushif 1
 	pushv shadowfiltersize
 	mulff

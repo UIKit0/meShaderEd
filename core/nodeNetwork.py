@@ -55,6 +55,7 @@ class NodeNetwork ( QtCore.QObject ) :
   # copy
   #
   def copy ( self ) :
+    #
     if DEBUG_MODE : print '>> NodeNetwork( %s ).copy ' % self.name
     newNode = NodeNetwork ()
     self.copySetup ( newNode )
