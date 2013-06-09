@@ -1,5 +1,5 @@
 surface
-AQSIS_V 1.6.0
+AQSIS_V 2
 
 
 segment Data
@@ -31,7 +31,6 @@ segment Code
 	RS_GET
 	pushv t
 	pushv s
-	pushif 0
 	pushv tn
 	pushif 0
 	ctexture2

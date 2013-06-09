@@ -1,5 +1,5 @@
 lightsource
-AQSIS_V 1.6.0
+AQSIS_V 2
 
 
 segment Data
@@ -57,7 +57,7 @@ segment Init
 	pop shadownamepz
 	pushis ""
 	pop shadownamenz
-	pushif 0.01
+	pushif 0.00999999978
 	pop shadowbias
 	pushif 0
 	pop shadowblur
@@ -113,7 +113,7 @@ segment Code
 	pushv shadowbias
 	pushis "bias"
 	pushv shadowblur
-	pushif 0.2
+	pushif 0.200000003
 	pushv shadowfiltersize
 	mulff
 	addff
@@ -121,7 +121,6 @@ segment Code
 	pushv shadowsamples
 	pushis "samples"
 	pushv Ps
-	pushif 0
 	pushv shadownamepx
 	pushif 8
 	shadow
@@ -196,7 +195,6 @@ segment Code
 	pushv shadowsamples
 	pushis "samples"
 	pushv Ps
-	pushif 0
 	pushv shadownamepx
 	pushif 8
 	shadow
@@ -232,7 +230,6 @@ segment Code
 	pushv shadowsamples
 	pushis "samples"
 	pushv Ps
-	pushif 0
 	pushv shadownamenx
 	pushif 8
 	shadow
@@ -288,7 +285,6 @@ segment Code
 	pushv shadowsamples
 	pushis "samples"
 	pushv Ps
-	pushif 0
 	pushv shadownamepy
 	pushif 8
 	shadow
@@ -324,7 +320,6 @@ segment Code
 	pushv shadowsamples
 	pushis "samples"
 	pushv Ps
-	pushif 0
 	pushv shadownameny
 	pushif 8
 	shadow
@@ -380,7 +375,6 @@ segment Code
 	pushv shadowsamples
 	pushis "samples"
 	pushv Ps
-	pushif 0
 	pushv shadownamepz
 	pushif 8
 	shadow
@@ -416,7 +410,6 @@ segment Code
 	pushv shadowsamples
 	pushis "samples"
 	pushv Ps
-	pushif 0
 	pushv shadownamenz
 	pushif 8
 	shadow

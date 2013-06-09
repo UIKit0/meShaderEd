@@ -46,11 +46,12 @@ class NodeParam ( QtCore.QObject ) :
     self.subtype = ''
     self.range = ''
 
+
     self.space = None # actual for color, point, vector, normal, matrix
     self.spaceDef = None # default value space
-    
+
     self.arraySize = None # otherwise, it should be a list of values ( or empty list )
-    
+
     self.defaultArray = []
     self.valueArray = []
     #self.spaceArray = []
@@ -120,11 +121,11 @@ class NodeParam ( QtCore.QObject ) :
   # setDefaultFromStr
   #
   def setDefaultFromStr ( self, strValue ) : self.default = self.valueFromStr ( strValue )
-  
+
   #
   # Virtual functions
   #
-  
+
   #
   # valueFromStr
   #
@@ -181,24 +182,26 @@ class NodeParam ( QtCore.QObject ) :
     if self.label == '' : self.label = self.name
     self.type        = str ( xml_param.attributes ().namedItem ( 'type' ).nodeValue () )
     self.shaderParam = xml_param.attributes ().namedItem ( 'shaderParam' ).nodeValue () == '1'
-    
+
     self.detail      = str ( xml_param.attributes ().namedItem ( 'detail' ).nodeValue () )
     self.provider    = str ( xml_param.attributes ().namedItem ( 'provider' ).nodeValue () )
     self.subtype     = str ( xml_param.attributes ().namedItem ( 'subtype' ).nodeValue () )
     self.range       = str ( xml_param.attributes ().namedItem ( 'range' ).nodeValue () )
-    
+
     self.display = True
     if not xml_param.attributes ().namedItem ( 'display' ).isNull () :
       self.display = xml_param.attributes ().namedItem ( 'display' ).nodeValue () == '1'
-      
+
     self.enabled = True
     if not xml_param.attributes ().namedItem ( 'enabled' ).isNull () :
       self.enabled = xml_param.attributes ().namedItem ( 'enabled' ).nodeValue () == '1'
+
     if not xml_param.attributes ().namedItem ( 'space' ).isNull () :
       space = str ( xml_param.attributes ().namedItem ( 'space' ).nodeValue () )
       if space != '' :
         self.space = space
         self.spaceDef = space
+
     if not xml_param.attributes ().namedItem ( 'spaceDef' ).isNull () :
       spaceDef = str ( xml_param.attributes ().namedItem ( 'spaceDef' ).nodeValue () )
       if spaceDef != '' :
@@ -235,18 +238,20 @@ class NodeParam ( QtCore.QObject ) :
     if self.provider != '' : xmlnode.setAttribute ( 'provider', self.provider )
     # ui decorative parameters
     if self.subtype != ''  : xmlnode.setAttribute ( 'subtype', self.subtype )
-    if self.range != ''    : xmlnode.setAttribute ( "range", self.range )
+    if self.range != ''    : xmlnode.setAttribute ( 'range', self.range )
+
     if self.space != None  :
       if self.space != ''  : xmlnode.setAttribute ( 'space', self.space )
-    
+
     # write default value space only if it differs from value space
     if self.spaceDef != None  :
       if self.spaceDef != '' and  self.spaceDef != self.space : xmlnode.setAttribute ( 'spaceDef', self.spaceDef )
+
     if self.default != None :
       value = self.getDefaultToStr ()
       if not self.type in [ 'rib', 'rib_code' ] : value = value.strip ( '\"' )
       xmlnode.setAttribute ( 'default', value )
-    
+
     if self.value != None :
       value = self.getValueToStr ()
       if not self.type in [ 'rib', 'rib_code' ] : value = value.strip ( '\"' )

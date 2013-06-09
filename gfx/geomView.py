@@ -1,65 +1,63 @@
-#===============================================================================
-# geomView.py
-#
-# 
-#
-#===============================================================================
+"""
+ geomView.py
+
+"""
 import os, sys
 import math
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-from PyQt4 import QtCore, QtGui 
+from PyQt4 import QtCore, QtGui
 from PyQt4.QtOpenGL import *
 #
 # GeomView
 #
-class GeomView ( QGLWidget ):
+class GeomView ( QGLWidget ) :
   #
   # __init__
   #
   def __init__ ( self, parent ):
     #
     QGLWidget.__init__ ( self, parent )
-    
-    self.state = 'idle' 
+
+    self.state = 'idle'
     self.panStartPos = None
-    
+
     self.pixmap = None
-    
+
     self.geom_code = """
-glEnableClientState(GL_VERTEX_ARRAY)
+glEnableClientState ( GL_VERTEX_ARRAY )
 spiral_array = []
 # Second Spiral using "array immediate mode" (i.e. Vertex Arrays)
 radius = 0.8
-x = radius*math.sin(0)
-y = radius*math.cos(0)
-glColor(1.0, 0.0, 0.0)
-for deg in xrange(820):
+x = radius * math.sin ( 0 )
+y = radius * math.cos ( 0 )
+glColor ( 1.0, 0.0, 0.0 )
+for deg in xrange ( 820 ):
   spiral_array.append ( [x, y] )
-  rad = math.radians(deg)
+  rad = math.radians ( deg )
   radius -= 0.001
-  x = radius*math.sin(rad)
-  y = radius*math.cos(rad)
+  x = radius * math.sin ( rad )
+  y = radius * math.cos ( rad )
 
-glVertexPointerf(spiral_array)
-glDrawArrays( GL_LINE_STRIP, 0, len(spiral_array) )
-glFlush()
+glVertexPointerf ( spiral_array )
+glDrawArrays ( GL_LINE_STRIP, 0, len ( spiral_array ) )
+glFlush ()
 
 
 
-""" 
-    
+"""
     print '>> GeomView init'
   #
+  # initializeGL
   #
   def initializeGL ( self ) :
     #
     print ">> GeomeView: initializeGL"
-    
+
     #glClearColor(0.0, 0.0, 0.0, 0.0);
-    #glEnable(GL_DEPTH_TEST);  
+    #glEnable(GL_DEPTH_TEST);
     # set viewing projection
     glClearColor(0.0, 0.0, 0.0, 1.0)
     glClearDepth(1.0)
@@ -72,130 +70,129 @@ glFlush()
   #
   def resizeGL ( self, w, h) :
     #
-    print ">> GeomeView: resizeGL (%d, %d)" % ( w, h )     
-    
+    #print ">> GeomeView: resizeGL (%d, %d)" % ( w, h )
+    pass
+
     #setup viewport, projection etc.:
-    
+
     #glViewport(0, 0, w, h)
     #glMatrixMode(GL_PROJECTION)
     #glLoadIdentity()
     #gluPerspective(40.0, 1.0, 1.0, 30.0)
-    
+
   #
   # paintGL
   #
   def paintGL ( self ) :
     #
-    print ">> GeomeView: paintGL"
-    
+    #print ">> GeomeView.paintGL"
+
     # draw the scene:
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    glLoadIdentity()
+    glClear ( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT )
+    glLoadIdentity ()
     # Draw the spiral in 'immediate mode'
     # WARNING: You should not be doing the spiral calculation inside the loop
     # even if you are using glBegin/glEnd, sin/cos are fairly expensive functions
     # I've left it here as is to make the code simpler.
     radius = 1.0
-    x = radius*math.sin(0)
-    y = radius*math.cos(0)
-    glColor(0.0, 1.0, 0.0)
-    glBegin(GL_LINE_STRIP)
-    for deg in xrange(1000):
-      glVertex( x, y, 0.0 )
-      rad = math.radians(deg)
+    x = radius * math.sin ( 0 )
+    y = radius * math.cos ( 0 )
+    glColor ( 0.0, 1.0, 0.0 )
+    glBegin ( GL_LINE_STRIP )
+    for deg in xrange ( 1000 ) :
+      glVertex ( x, y, 0.0 )
+      rad = math.radians ( deg )
       radius -= 0.001
-      x = radius*math.sin(rad)
-      y = radius*math.cos(rad)
-    glEnd()
-    
-    exec self.geom_code
+      x = radius * math.sin ( rad )
+      y = radius * math.cos ( rad )
+    glEnd ()
 
+    exec self.geom_code
   #
   # keyPressEvent
   #
-  def keyPressEvent ( self, event ) : 
+  def keyPressEvent ( self, event ) :
     #
-    print ">> GeomeView: keyPressEvent"
+    print ">> GeomeView.keyPressEvent"
     QtGui.QGraphicsView.keyPressEvent ( self, event)
   #
   # wheelEvent
-  #  
-  def wheelEvent ( self, event ):
+  #
+  def wheelEvent ( self, event ) :
     #
     #print ">> GeomeView: wheelEvent"
     # QtGui.QGraphicsView.wheelEvent( self, event)
     scale = -1.0
-    if 'linux' in sys.platform: scale = 1.0     
+    if 'linux' in sys.platform: scale = 1.0
     import math
-    scaleFactor = math.pow( 2.0, scale * event.delta() / 600.0 )
-    factor = self.matrix().scale( scaleFactor, scaleFactor ).mapRect( QtCore.QRectF( -1, -1, 2, 2 ) ).width()
+    scaleFactor = math.pow ( 2.0, scale * event.delta () / 600.0 )
+    factor = self.matrix ().scale ( scaleFactor, scaleFactor ).mapRect ( QtCore.QRectF ( -1, -1, 2, 2 ) ).width ()
     if factor < 0.07 or factor > 100: return
-    self.scale ( scaleFactor, scaleFactor )      
+    self.scale ( scaleFactor, scaleFactor )
   #
   # mousePressEvent
   #
-  def mousePressEvent ( self, event ):
+  def mousePressEvent ( self, event ) :
     #
     #print ">> GeomeView: mousePressEvent"
-    if ( event.button() == QtCore.Qt.MidButton or 
-      ( event.button() == QtCore.Qt.LeftButton and event.modifiers() == QtCore.Qt.ShiftModifier ) ) :  
-      if self.state == 'idle':
-        self.panStartPos = self.mapToScene( event.pos() )
+    if ( event.button () == QtCore.Qt.MidButton or
+        ( event.button () == QtCore.Qt.LeftButton and event.modifiers () == QtCore.Qt.ShiftModifier ) ) :
+      if self.state == 'idle' :
+        self.panStartPos = self.mapToScene ( event.pos () )
         self.state = 'pan'
         return
-    QtGui.QGraphicsView.mousePressEvent ( self, event )        
+    QtGui.QGraphicsView.mousePressEvent ( self, event )
   #
   # mouseDoubleClickEvent
   #
-  def mouseDoubleClickEvent ( self, event ):
+  def mouseDoubleClickEvent ( self, event ) :
     #
-    #print ">> GeomeView: mouseDoubleClickEvent"
-    self.emit ( QtCore.SIGNAL( 'mouseDoubleClickEvent' ) ) 
+    #print ">> GeomeView.mouseDoubleClickEvent"
+    self.emit ( QtCore.SIGNAL ( 'mouseDoubleClickEvent' ) )
     QtGui.QGraphicsView.mouseDoubleClickEvent ( self, event )
   #
   # mouseMoveEvent
-  #  
-  def mouseMoveEvent ( self, event ):
+  #
+  def mouseMoveEvent ( self, event ) :
     #
-    #print ">> GeomeView: mouseMoveEvent"
+    #print ">> GeomeView.mouseMoveEvent"
     if self.state == 'pan' :
-      panCurrentPos = self.mapToScene( event.pos() )
+      panCurrentPos = self.mapToScene ( event.pos () )
       panDeltaPos = panCurrentPos - self.panStartPos
       # update view matrix
       self.setInteractive ( False )
-      self.translate ( panDeltaPos.x(), panDeltaPos.y() )        
-      self.setInteractive ( True )  
+      self.translate ( panDeltaPos.x (), panDeltaPos.y () )
+      self.setInteractive ( True )
     else :
-      QtGui.QGraphicsView.mouseMoveEvent ( self, event )        
+      QtGui.QGraphicsView.mouseMoveEvent ( self, event )
   #
   # mouseReleaseEvent
-  #  
-  def mouseReleaseEvent ( self, event ):        
+  #
+  def mouseReleaseEvent ( self, event ) :
     #
-    #print ">> GeomeView: mouseReleaseEvent"
+    #print ">> GeomeView.mouseReleaseEvent"
     if self.state == 'pan' :
-      self.state = 'idle'  
+      self.state = 'idle'
       self.panStartPos = None
-    QtGui.QGraphicsView.mouseReleaseEvent ( self, event )   
+    QtGui.QGraphicsView.mouseReleaseEvent ( self, event )
   #
   # viewportEvent
   #
-  def viewportEvent( self, event ):
+  def viewportEvent ( self, event ) :
     #case QEvent::TouchBegin:
     # case QEvent::TouchUpdate:
     # case QEvent::TouchEnd:
-    if event.type() == QtCore.QEvent.TouchBegin :
+    if event.type () == QtCore.QEvent.TouchBegin :
       print ">> ImageView: QEvent.TouchBegin"
     return QtGui.QGraphicsView.viewportEvent ( self, event )
-    
   #
   # setImage
   #
   def setImage ( self, imageName ) :
     #
-    self.pixmap = QtGui.QPixmap() 
+    self.pixmap = QtGui.QPixmap()
     wi = 256
-    hi = 256   
+    hi = 256
 
     if imageName != '' :
       print ">> GeomeView: setImage name = %s" % imageName
@@ -206,9 +203,9 @@ glFlush()
 
         image = imageReader.read()
         if not self.pixmap.convertFromImage ( image ) :
-          print ">> GeomeView: QPixmap can't convert %s" % imageName  
+          print ">> GeomeView: QPixmap can't convert %s" % imageName
       else:
-        print ">> GeomeView:  QImageReader can't read %s..." % imageName   
+        print ">> GeomeView:  QImageReader can't read %s..." % imageName
         # print imageReader.supportedImageFormats ()
         print ">> GeomeView: Lets try PIL module..."
         import Image
@@ -219,27 +216,27 @@ glFlush()
         from global_vars import app_global_vars
 
         tmpname = app_global_vars[ 'TempPath' ] + '/' + os.path.basename ( imageName + '.png' )
-        print ">> GeomeView: Save %s ..." % tmpname 
-        image.save ( tmpname )  
+        print ">> GeomeView: Save %s ..." % tmpname
+        image.save ( tmpname )
 
         self.pixmap = QtGui.QPixmap ( tmpname )
 
     if not self.pixmap.isNull():
       wi = self.pixmap.width()
-      hi = self.pixmap.height() 
+      hi = self.pixmap.height()
     else:
-      print ">> GeomeView: isNull()"  
+      print ">> GeomeView: isNull()"
 
     self.scene().setSceneRect ( 0, 0, wi, hi )
     self.scene().update()
   #
   # drawBackground
   #
-  def drawBackground( self, painter, rect ):
+  def drawBackground( self, painter, rect ) :
     #
-    #print ">> GeomeView: drawBackground"
-    painter.fillRect( rect, self.BgBrush )
+    #print ">> GeomeView.drawBackground"
+    painter.fillRect ( rect, self.BgBrush )
     if self.pixmap is not None:
       #print ">> GeomeView: painter.drawPixmap"
-      painter.drawPixmap ( 0, 0, self.pixmap )  
-          
+      painter.drawPixmap ( 0, 0, self.pixmap )
+

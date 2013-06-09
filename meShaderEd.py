@@ -2,7 +2,7 @@
 """
  meShaderEd.py
 
- version 0.3.1b (26 Apr 2013)
+ version 0.3.1b.GL (?? May 2013)
 
  written by Yuri.Meshalkin (mesh@kpp.kiev.ua)
 
@@ -31,7 +31,7 @@ from global_vars import app_global_vars, DEBUG_MODE
 
 
 root = normPath ( sys.path[0] )
-version = '0.3.1b'
+version = '0.3.1b.GL'
 
 app_settings = QtCore.QSettings ( QtCore.QSettings.IniFormat,
                                   QtCore.QSettings.UserScope,
@@ -189,7 +189,8 @@ if __name__ == "__main__":
 
   if sys.platform == 'win32' :
     #pass
-    QtGui.QApplication.setStyle(QtGui.QStyleFactory.create ( 'Cleanlooks' ) )
-    QtGui.QApplication.setPalette( QtGui.QApplication.style ().standardPalette () )
+    QtGui.QApplication.setStyle ( QtGui.QStyleFactory.create ( 'Cleanlooks' ) )
+    if QtCore.QT_VERSION < 50000 :
+    	QtGui.QApplication.setPalette ( QtGui.QApplication.style ().standardPalette () )
 
   main()

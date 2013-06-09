@@ -66,7 +66,7 @@ class Node ( QtCore.QObject ) :
   # __del__
   #
   def __del__ ( self ) :
-    if DEBUG_MODE : print '>> Node( %s ).__del__ ' % self.label
+    if DEBUG_MODE : print '>> Node( %s ).__del__' % self.label
   #
   # build
   #
@@ -210,7 +210,6 @@ class Node ( QtCore.QObject ) :
         removedLink = link
         outputLinks.remove ( link )
     return removedLink
-
   #
   # isInputParamLinked
   #
@@ -223,9 +222,9 @@ class Node ( QtCore.QObject ) :
   # getLinkedSrcNode
   #
   def getLinkedSrcNode ( self, param ) :
-  # returns node linked to input parameter param,
-  # skipping all ConnectorNode
-  #
+    # returns node linked to input parameter param,
+    # skipping all ConnectorNode
+    #
     if DEBUG_MODE : print '* getLinkedSrcNode node = %s param = %s' % ( self.label, param.label )
     srcNode = None
     srcParam = None
@@ -344,6 +343,7 @@ class Node ( QtCore.QObject ) :
   # getInputLinkByID
   #
   def getInputLinkByID ( self, id ) :
+    #
     result = None
     for link in self.getInputLinks () :
       if link.id == id :
@@ -381,6 +381,7 @@ class Node ( QtCore.QObject ) :
   # onParamChanged
   #
   def onParamChanged ( self, param ) :
+    #
     if DEBUG_MODE : print ">> Node: onParamChanged node = %s param = %s" % ( self.label, param.name )
     pass
     #self.emit( QtCore.SIGNAL( 'onNodeParamChanged(QObject,QObject)' ), self, param )
@@ -411,9 +412,9 @@ class Node ( QtCore.QObject ) :
   def getParamDeclaration ( self, param ) :
     #
     result = ''
-    result += param.typeToStr() + ' '
+    result += param.typeToStr () + ' '
     result += self.getParamName ( param ) + ' = '
-    result += param.getValueToStr() + ';\n'
+    result += param.getValueToStr () + ';\n'
     return result
   #
   # parseFromXML
@@ -757,7 +758,7 @@ def createParamFromXml ( xml_param, isRibParam, isInput = True ) :
                           ,'shader'       : ShaderNodeParam
                           ,'geom'         : GeomNodeParam
                        }
-  param_type = str( xml_param.attributes ().namedItem ( 'type' ).nodeValue () )
+  param_type = str ( xml_param.attributes ().namedItem ( 'type' ).nodeValue () )
   if param_type in createParamTable.keys () :
     param = createParamTable [ param_type ]( xml_param, isRibParam )
     param.isInput = isInput
