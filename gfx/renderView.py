@@ -1,16 +1,15 @@
-#===============================================================================
-# renderView.py
-#
-# 
-#
-#===============================================================================
+"""
+ renderView.py
+
+"""
 import os, sys
 from PyQt4 import QtCore, QtGui
 #
+# RenderView
 #
-#
-class RenderView ( QtGui.QGraphicsView ):
+class RenderView ( QtGui.QGraphicsView ) :
   #
+  # __init__
   #
   def __init__ ( self, parent ):
     #
@@ -42,17 +41,16 @@ class RenderView ( QtGui.QGraphicsView ):
     
     print '>> RenderView init'
   #
-  #
-
-  #
+  # keyPressEvent
   #
   def keyPressEvent ( self, event ) : 
     #
     print ">> RenderView: keyPressEvent"
     QtGui.QGraphicsView.keyPressEvent ( self, event)
   #
-  #  
-  def wheelEvent ( self, event ):
+  # wheelEvent
+  # 
+  def wheelEvent ( self, event ) :
     #
     #print ">> RenderView: wheelEvent"
     # QtGui.QGraphicsView.wheelEvent( self, event)
@@ -64,8 +62,9 @@ class RenderView ( QtGui.QGraphicsView ):
     if factor < 0.07 or factor > 100: return
     self.scale ( scaleFactor, scaleFactor )      
   #
+  # mousePressEvent
   #
-  def mousePressEvent ( self, event ):
+  def mousePressEvent ( self, event ) :
     #
     #print ">> RenderView: mousePressEvent"
     if ( event.button() == QtCore.Qt.MidButton or 
@@ -76,15 +75,17 @@ class RenderView ( QtGui.QGraphicsView ):
         return
     QtGui.QGraphicsView.mousePressEvent ( self, event )        
   #
+  # mouseDoubleClickEvent
   #
-  def mouseDoubleClickEvent ( self, event ):
+  def mouseDoubleClickEvent ( self, event ) :
     #
     #print ">> RenderView: mouseDoubleClickEvent"
     self.emit ( QtCore.SIGNAL( 'mouseDoubleClickEvent' ) ) 
     QtGui.QGraphicsView.mouseDoubleClickEvent ( self, event )
   #
-  #  
-  def mouseMoveEvent ( self, event ):
+  # mouseMoveEvent
+  # 
+  def mouseMoveEvent ( self, event ) :
     #
     #print ">> RenderView: mouseMoveEvent"
     if self.state == 'pan' :
@@ -97,8 +98,9 @@ class RenderView ( QtGui.QGraphicsView ):
     else :
       QtGui.QGraphicsView.mouseMoveEvent ( self, event )        
   #
-  #  
-  def mouseReleaseEvent ( self, event ):        
+  # mouseReleaseEvent
+  # 
+  def mouseReleaseEvent ( self, event ) :        
     #
     #print ">> RenderView: mouseReleaseEvent"
     if self.state == 'pan' :
@@ -106,16 +108,17 @@ class RenderView ( QtGui.QGraphicsView ):
       self.panStartPos = None
     QtGui.QGraphicsView.mouseReleaseEvent ( self, event )   
   #
+  # viewportEvent
   #
-  def viewportEvent( self, event ):
+  def viewportEvent ( self, event ) :
     #case QEvent::TouchBegin:
     # case QEvent::TouchUpdate:
     # case QEvent::TouchEnd:
     if event.type() == QtCore.QEvent.TouchBegin :
       print ">> RenderView: QEvent.TouchBegin"
     return QtGui.QGraphicsView.viewportEvent ( self, event )
-    
-  #
+  #  
+  # setImage
   #
   def setImage ( self, imageName ) :
     #
@@ -129,7 +132,6 @@ class RenderView ( QtGui.QGraphicsView ):
       imageReader = QtGui.QImageReader ( imageName )
 
       if imageReader.canRead() :
-
         image = imageReader.read()
         if not self.pixmap.convertFromImage ( image ) :
           print ">> RenderView: QPixmap can't convert %s" % imageName  
@@ -159,12 +161,17 @@ class RenderView ( QtGui.QGraphicsView ):
     self.scene().setSceneRect ( 0, 0, wi, hi )
     self.scene().update()
   #
+  # drawBackground
   #
-  def drawBackground( self, painter, rect ):
+  def drawBackground ( self, painter, rect ) :
     #
-    #print ">> RenderView: drawBackground"
     painter.fillRect( rect, self.BgBrush )
-    if self.pixmap is not None:
-      #print ">> RenderView: painter.drawPixmap"
+    if self.pixmap is not None :
       painter.drawPixmap ( 0, 0, self.pixmap )  
-          
+  #
+  # resetZoom
+  #
+  def resetZoom ( self ) :
+    self.setInteractive ( False )
+    self.resetTransform () 
+    self.setInteractive ( True )        

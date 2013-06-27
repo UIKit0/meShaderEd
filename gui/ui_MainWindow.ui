@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>874</width>
-    <height>611</height>
+    <width>952</width>
+    <height>805</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -70,8 +70,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>874</width>
-     <height>19</height>
+     <width>952</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="font">
@@ -369,6 +369,15 @@
     <number>2</number>
    </attribute>
    <widget class="NodeSwatchParam" name="swatchParam_ctl"/>
+  </widget>
+  <widget class="QDockWidget" name="dockRender">
+   <property name="windowTitle">
+    <string>Render View</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="RenderViewWidget" name="renderView_ctl"/>
   </widget>
   <action name="actionRendererOptions">
    <property name="text">
@@ -825,6 +834,7 @@
   <zorder>dockGeom</zorder>
   <zorder>dockProject</zorder>
   <zorder>dockSwatch</zorder>
+  <zorder>dockRender</zorder>
  </widget>
  <customwidgets>
   <customwidget>
@@ -860,6 +870,12 @@
    <class>NodeSwatchParam</class>
    <extends>QWidget</extends>
    <header>nodeSwatchParam</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>RenderViewWidget</class>
+   <extends>QWidget</extends>
+   <header>renderViewWidget</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
