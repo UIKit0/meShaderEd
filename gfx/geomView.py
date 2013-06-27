@@ -9,11 +9,11 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 
 from PyQt4 import QtCore, QtGui
-from PyQt4.QtOpenGL import *
+from PyQt4.QtOpenGL import * #QGLFunctions
 #
 # GeomView
 #
-class GeomView ( QGLWidget ) :
+class GeomView ( QGLWidget ) : # , QGLFunctions
   #
   # __init__
   #
@@ -54,31 +54,31 @@ glFlush ()
   #
   def initializeGL ( self ) :
     #
-    print ">> GeomeView: initializeGL"
+    print ">> GeomeView.initializeGL"
 
     #glClearColor(0.0, 0.0, 0.0, 0.0);
     #glEnable(GL_DEPTH_TEST);
     # set viewing projection
-    glClearColor(0.0, 0.0, 0.0, 1.0)
-    glClearDepth(1.0)
-    glViewport(0, 0, 500, 500)
-    glMatrixMode(GL_PROJECTION)
-    glLoadIdentity()
-    gluPerspective(40.0, 1.0, 1.0, 30.0)
+    #initializeGLFunctions ()
+    
+    glClearColor ( 0.0, 0.0, 0.0, 1.0 )
+    glEnable ( GL_DEPTH_TEST )
+    glClearDepth( 1.0 )
   #
   # resizeGL
   #
   def resizeGL ( self, w, h) :
     #
-    #print ">> GeomeView: resizeGL (%d, %d)" % ( w, h )
-    pass
+    #print ">> GeomeView.resizeGL (%d, %d)" % ( w, h )
+    
+    glViewport ( 0, 0, 500, 500 )
+    glMatrixMode ( GL_PROJECTION )
+    glLoadIdentity ()
+    gluPerspective ( 40.0, 1.0, 1.0, 30.0 )
 
-    #setup viewport, projection etc.:
-
-    #glViewport(0, 0, w, h)
-    #glMatrixMode(GL_PROJECTION)
-    #glLoadIdentity()
-    #gluPerspective(40.0, 1.0, 1.0, 30.0)
+    #x = w / h;
+    #glFrustum ( -1.0, 1.0, -1.0, 1.0, 1.0, 50.0 )
+    #glMatrixMode ( GL_MODELVIEW )
 
   #
   # paintGL
@@ -86,10 +86,42 @@ glFlush ()
   def paintGL ( self ) :
     #
     #print ">> GeomeView.paintGL"
-
-    # draw the scene:
+    self.drawGrid ()
+    
+  #
+  # drawGrid
+  #
+  def drawGrid ( self ) :
+    #
     glClear ( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT )
     glLoadIdentity ()
+    
+    glColor3f ( .3, .3, .3 )
+    glBegin ( GL_QUADS )
+    glVertex3f ( 0,  -0.001, 0  )
+    glVertex3f ( 0,  -0.001, 10 )
+    glVertex3f ( 10, -0.001, 10 )
+    glVertex3f ( 10, -0.001, 0 )
+    glEnd()
+    
+    glBegin ( GL_LINES )
+    for i in range( 10 ) :
+      if i == 0 : 
+        glColor3f ( .6, .3, .3 ) 
+      else : 
+        glColor3f ( .25, .25, .25 )
+      glVertex3f ( i, 0, 0 )
+      glVertex3f ( i, 0, 10 )
+      if i==0 : 
+        glColor3f ( .3, .3, .6 )
+      else :
+        glColor3f ( .25, .25, .25 )
+      glVertex3f ( 0,  0, i )
+      glVertex3f ( 10, 0, i )
+    
+    glEnd ()
+    
+    
     # Draw the spiral in 'immediate mode'
     # WARNING: You should not be doing the spiral calculation inside the loop
     # even if you are using glBegin/glEnd, sin/cos are fairly expensive functions
@@ -108,13 +140,14 @@ glFlush ()
     glEnd ()
 
     exec self.geom_code
+    
   #
   # keyPressEvent
   #
   def keyPressEvent ( self, event ) :
     #
     print ">> GeomeView.keyPressEvent"
-    QtGui.QGraphicsView.keyPressEvent ( self, event)
+    QtGui.QWidget.keyPressEvent ( self, event)
   #
   # wheelEvent
   #
@@ -141,7 +174,7 @@ glFlush ()
         self.panStartPos = self.mapToScene ( event.pos () )
         self.state = 'pan'
         return
-    QtGui.QGraphicsView.mousePressEvent ( self, event )
+    QtGui.QWidget.mousePressEvent ( self, event )
   #
   # mouseDoubleClickEvent
   #
@@ -149,7 +182,7 @@ glFlush ()
     #
     #print ">> GeomeView.mouseDoubleClickEvent"
     self.emit ( QtCore.SIGNAL ( 'mouseDoubleClickEvent' ) )
-    QtGui.QGraphicsView.mouseDoubleClickEvent ( self, event )
+    QtGui.QWidget.mouseDoubleClickEvent ( self, event )
   #
   # mouseMoveEvent
   #
@@ -164,7 +197,7 @@ glFlush ()
       self.translate ( panDeltaPos.x (), panDeltaPos.y () )
       self.setInteractive ( True )
     else :
-      QtGui.QGraphicsView.mouseMoveEvent ( self, event )
+      QtGui.QWidget.mouseMoveEvent ( self, event )
   #
   # mouseReleaseEvent
   #
@@ -174,7 +207,7 @@ glFlush ()
     if self.state == 'pan' :
       self.state = 'idle'
       self.panStartPos = None
-    QtGui.QGraphicsView.mouseReleaseEvent ( self, event )
+    QtGui.QWidget.mouseReleaseEvent ( self, event )
   #
   # viewportEvent
   #
@@ -184,7 +217,7 @@ glFlush ()
     # case QEvent::TouchEnd:
     if event.type () == QtCore.QEvent.TouchBegin :
       print ">> ImageView: QEvent.TouchBegin"
-    return QtGui.QGraphicsView.viewportEvent ( self, event )
+    return QtGui.QWidget.viewportEvent ( self, event )
   #
   # setImage
   #
@@ -229,14 +262,5 @@ glFlush ()
 
     self.scene().setSceneRect ( 0, 0, wi, hi )
     self.scene().update()
-  #
-  # drawBackground
-  #
-  def drawBackground( self, painter, rect ) :
-    #
-    #print ">> GeomeView.drawBackground"
-    painter.fillRect ( rect, self.BgBrush )
-    if self.pixmap is not None:
-      #print ">> GeomeView: painter.drawPixmap"
-      painter.drawPixmap ( 0, 0, self.pixmap )
+
 
