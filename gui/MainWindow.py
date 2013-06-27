@@ -193,13 +193,11 @@ class MainWindow ( QtGui.QMainWindow ) :
     self.tabifyDockWidget ( self.ui.dockParam, self.ui.dockSwatch )
 
     # temporary hide unused panels
-    #self.removeDockWidget ( self.ui.dockGeom )
-    #self.removeDockWidget ( self.ui.dockSwatch )
     #self.ui.dockGeom.hide ()
     self.ui.dockSwatch.hide ()
 
     self.ui.dockNodes.raise_ ()
-    self.ui.dockPreview.raise_ ()
+    self.ui.dockGeom.raise_ ()
     self.ui.dockParam.raise_ ()
 
     #self.addDockWidget ( QtCore.Qt.DockWidgetArea ( 2 ), self.ui.dockParam )
@@ -208,6 +206,7 @@ class MainWindow ( QtGui.QMainWindow ) :
   # addRecentProject
   #
   def addRecentProject ( self, project ) :
+    #
     if project is not None :
       recent_projects_max = getDefaultValue ( app_settings, '', 'recent_projects_max' )
 
