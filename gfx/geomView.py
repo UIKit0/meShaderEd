@@ -171,7 +171,7 @@ glFlush ()
     if ( event.button () == QtCore.Qt.MidButton or
         ( event.button () == QtCore.Qt.LeftButton and event.modifiers () == QtCore.Qt.ShiftModifier ) ) :
       if self.state == 'idle' :
-        self.panStartPos = self.mapToScene ( event.pos () )
+        # self.panStartPos = self.mapToScene ( event.pos () )
         self.state = 'pan'
         return
     QtGui.QWidget.mousePressEvent ( self, event )
@@ -190,7 +190,7 @@ glFlush ()
     #
     #print ">> GeomeView.mouseMoveEvent"
     if self.state == 'pan' :
-      panCurrentPos = self.mapToScene ( event.pos () )
+      #panCurrentPos = self.mapToScene ( event.pos () )
       panDeltaPos = panCurrentPos - self.panStartPos
       # update view matrix
       self.setInteractive ( False )

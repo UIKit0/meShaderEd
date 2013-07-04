@@ -55,6 +55,8 @@ class WorkArea ( QtGui.QGraphicsView ) :
     self.selectedNodes = []
     self.selectedLinks = []
 
+    self.animateFit = True
+    self.animateFitDuration = 100000
     # set scene
     scene = QtGui.QGraphicsScene ( self )
 
@@ -67,7 +69,7 @@ class WorkArea ( QtGui.QGraphicsView ) :
     self.setRenderHint ( QtGui.QPainter.Antialiasing )
 
     self.setTransformationAnchor ( QtGui.QGraphicsView.AnchorUnderMouse )
-    self.setResizeAnchor ( QtGui.QGraphicsView.AnchorViewCenter )
+    self.setResizeAnchor ( QtGui.QGraphicsView.AnchorUnderMouse )  # AnchorViewCenter
     self.setDragMode ( QtGui.QGraphicsView.RubberBandDrag )
 
     self.setMouseTracking ( False )
@@ -132,7 +134,7 @@ class WorkArea ( QtGui.QGraphicsView ) :
       if ( isinstance ( item, GfxNode ) or
            ( isinstance ( item, GfxNodeConnector ) and item.isNode () ) ) :
         if type is None or item.node.type == type :
-          print '>> item.node.type = %s' % item.node.type
+          # print '>> item.node.type = %s' % item.node.type
           resultList.append ( item )
     return resultList
   #
@@ -152,9 +154,13 @@ class WorkArea ( QtGui.QGraphicsView ) :
   #
   # selectAllNodes
   #
+  def getAllGfxNodes ( self ) : return self.getGfxNodesByType ( None )
+  #
+  # selectAllNodes
+  #
   def selectAllNodes ( self ) :
     #
-    for item in self.getGfxNodesByType ( None ) : item.setSelected ( True )
+    for item in self.getAllGfxNodes () : item.setSelected ( True )
   #
   # selectAbove
   #
@@ -186,6 +192,7 @@ class WorkArea ( QtGui.QGraphicsView ) :
   #
   def setNodeNetwork ( self, nodeNet ) : self.nodeNet = nodeNet
   #
+  # clear
   #
   def clear ( self ):
     #
@@ -252,6 +259,41 @@ class WorkArea ( QtGui.QGraphicsView ) :
     #
     for item in self.scene ().items () :
       if isinstance ( item, GfxLink ): item.adjust ()
+  #
+  # fitGfxNodesInView
+  #
+  def fitGfxNodesInView ( self, gfxNodeList ) :
+    #
+    nodeNetRect = QtCore.QRectF ()
+    for gfxNode in gfxNodeList :
+      nodeRect = gfxNode.sceneBoundingRect ()
+      if nodeNetRect.isNull () :
+        nodeNetRect = nodeRect
+      nodeNetRect = nodeNetRect.united ( nodeRect )
+    if nodeNetRect.isValid () :
+      if False : # self.animateFit
+        fitAnimation = QtCore.QPropertyAnimation ( self, 'geometry' )
+        viewRect = QtCore.QRectF ( self.rect () )
+        viewRect.moveTo ( self.mapToScene ( 0, 0 ) )
+        print "* viewRect = %f %f %f %f" % ( viewRect.left (), viewRect.top (), viewRect.width (), viewRect.height () )
+        fitAnimation.setDuration ( self.animateFitDuration )
+        fitAnimation.setStartValue ( viewRect )
+        fitAnimation.setEndValue ( nodeNetRect )
+        fitAnimation.connect ( fitAnimation, QtCore.SIGNAL ( 'valueChanged(QVariant)' ), self.fitInViewAnimation )
+        fitAnimation.start ()
+      else :
+        self.fitInView ( nodeNetRect, QtCore.Qt.KeepAspectRatio ) 
+  #
+  # 
+  #
+  def fitInViewAnimation ( self, fitRect ) :
+    #
+    if fitRect.isValid () :
+      print "* fitRect = %f %f %f %f" % ( fitRect.left (), fitRect.top (), fitRect.width (), fitRect.height () )
+      self.fitInView ( fitRect, QtCore.Qt.KeepAspectRatio )
+    else :
+       print "!! WorkArea.fitInViewAnimation invalid fitRect"
+    
   #
   # onSelectionChanged
   #
@@ -659,8 +701,8 @@ class WorkArea ( QtGui.QGraphicsView ) :
     scale = -1.0
     if 'linux' in sys.platform: scale = 1.0
     import math
-    scaleFactor = math.pow( 2.0, scale * event.delta() / 600.0 )
-    factor = self.matrix().scale( scaleFactor, scaleFactor ).mapRect( QtCore.QRectF( -1, -1, 2, 2 ) ).width ()
+    scaleFactor = math.pow ( 2.0, scale * event.delta () / 600.0 )
+    factor = self.matrix ().scale ( scaleFactor, scaleFactor ).mapRect ( QtCore.QRectF( -1, -1, 2, 2 ) ).width ()
     if factor < 0.07 or factor > 100: return
     self.scale ( scaleFactor, scaleFactor )
   #
@@ -703,7 +745,7 @@ class WorkArea ( QtGui.QGraphicsView ) :
       panDeltaPos = panCurrentPos - self.panStartPos
       # update view matrix
       self.setInteractive ( False )
-      self.translate ( panDeltaPos.x(), panDeltaPos.y() )
+      self.translate ( panDeltaPos.x (), panDeltaPos.y () )
       self.setInteractive ( True )
     
     elif self.state == 'zoom' :
@@ -713,8 +755,8 @@ class WorkArea ( QtGui.QGraphicsView ) :
       scale = -1.0
       if 'linux' in sys.platform: scale = 1.0
       import math
-      scaleFactor = math.pow( 2.0, scale * max( panDeltaPos.x(), panDeltaPos.y() ) / 200.0  ) #
-      factor = self.matrix().scale( scaleFactor, scaleFactor ).mapRect( QtCore.QRectF( -1, -1, 2, 2 ) ).width()
+      scaleFactor = math.pow ( 2.0, scale * max ( panDeltaPos.x (), panDeltaPos.y () ) / 200.0  ) #
+      factor = self.matrix ().scale ( scaleFactor, scaleFactor ).mapRect ( QtCore.QRectF ( -1, -1, 2, 2 ) ).width()
 
       if factor < 0.07 or factor > 100: return
       # update view matrix
@@ -722,7 +764,6 @@ class WorkArea ( QtGui.QGraphicsView ) :
       self.scale ( scaleFactor, scaleFactor )
       self.translate ( -panDeltaPos.x() * scaleFactor, -panDeltaPos.y() * scaleFactor )
       self.setInteractive ( True )
-    
     else :
       QtGui.QGraphicsView.mouseMoveEvent ( self, event )
   #
@@ -820,7 +861,6 @@ class WorkArea ( QtGui.QGraphicsView ) :
             dupSrcParam = dupSrcNode.getOutputParamByName ( srcParam.name )
             dupLink.setSrc ( dupSrcNode, dupSrcParam )
             dupNodeNet.addLink ( dupLink ) 
-            
       
     dom = QtXml.QDomDocument ( dupNodeNet.name )
     dupNodeNet.parseToXML ( dom )
