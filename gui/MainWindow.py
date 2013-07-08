@@ -245,34 +245,34 @@ class MainWindow ( QtGui.QMainWindow ) :
     numNodes = 0
     numSelectedNodes = 0
     numSelectedLinks = 0
+    
     if self.workArea is not None :
       numNodes = len ( self.workArea.getAllGfxNodes () )
       numSelectedNodes = len ( self.workArea.selectedNodes )
       numSelectedLinks = len ( self.workArea.selectedLinks )
 
     enableForPaste = False
-
-    if self.clipboard.ownsClipboard () or (sys.platform == 'darwin'):
+    
+    if self.clipboard.ownsClipboard () or ( sys.platform == 'darwin' ):
       if DEBUG_MODE : print '** self.clipboard.ownsClipboard'
       data = self.clipboard.mimeData ()
       if data is not None :
         if data.hasText () :
           enableForPaste = True
 
-
-
-    if len ( self.workArea.selectedNodes ) > 0 : enableForSelectedNodes = True
-    if len ( self.workArea.selectedLinks ) > 0 : enableForSelectedLinks = True
-
+    
     self.ui.actionSelectAll.setEnabled ( numNodes > 0 )
     self.ui.actionSelectAbove.setEnabled ( numSelectedNodes == 1 )
     self.ui.actionSelectBelow.setEnabled ( numSelectedNodes == 1 )
+
     self.ui.actionDuplicate.setEnabled ( numSelectedNodes > 0 )
     self.ui.actionDuplicateWithLinks.setEnabled ( numSelectedNodes > 0 )
     self.ui.actionDelete.setEnabled ( ( numSelectedNodes > 0 ) or ( numSelectedLinks > 0 ) )
+
     self.ui.actionCut.setEnabled ( numSelectedNodes > 0 )
     self.ui.actionCopy.setEnabled ( numSelectedNodes > 0 )
     self.ui.actionPaste.setEnabled ( enableForPaste )
+    
     self.ui.actionFitAll.setEnabled ( numNodes > 0 )
     self.ui.actionFitSelected.setEnabled ( numSelectedNodes > 0 )
   #

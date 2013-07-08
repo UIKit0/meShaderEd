@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'gui\ui_MainWindow.ui'
 #
-# Created: Wed Jul 03 21:58:32 2013
+# Created: Sat Jul 06 16:38:19 2013
 #      by: PyQt4 UI code generator 4.10.2-snapshot-a8a14dd99d1e
 #
 # WARNING! All changes made in this file will be lost!
@@ -285,16 +285,21 @@ class Ui_MainWindow(object):
         self.actionSnapGrid.setIcon(icon12)
         self.actionSnapGrid.setObjectName(_fromUtf8("actionSnapGrid"))
         self.actionFitAll = QtGui.QAction(MainWindow)
-        self.actionFitAll.setEnabled(True)
+        icon13 = QtGui.QIcon()
+        icon13.addPixmap(QtGui.QPixmap(_fromUtf8(":/show_icons/resources/fit_all.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionFitAll.setIcon(icon13)
         self.actionFitAll.setVisible(True)
         self.actionFitAll.setObjectName(_fromUtf8("actionFitAll"))
         self.actionFitSelected = QtGui.QAction(MainWindow)
+        icon14 = QtGui.QIcon()
+        icon14.addPixmap(QtGui.QPixmap(_fromUtf8(":/show_icons/resources/fit_selected.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionFitSelected.setIcon(icon14)
         self.actionFitSelected.setVisible(True)
         self.actionFitSelected.setObjectName(_fromUtf8("actionFitSelected"))
         self.actionZoomReset = QtGui.QAction(MainWindow)
-        icon13 = QtGui.QIcon()
-        icon13.addPixmap(QtGui.QPixmap(_fromUtf8(":/show_icons/resources/zoom_reset.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.actionZoomReset.setIcon(icon13)
+        icon15 = QtGui.QIcon()
+        icon15.addPixmap(QtGui.QPixmap(_fromUtf8(":/show_icons/resources/zoom_reset.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionZoomReset.setIcon(icon15)
         self.actionZoomReset.setObjectName(_fromUtf8("actionZoomReset"))
         self.actionNewParamView = QtGui.QAction(MainWindow)
         self.actionNewParamView.setObjectName(_fromUtf8("actionNewParamView"))
@@ -500,7 +505,9 @@ class Ui_MainWindow(object):
         self.actionSnapGrid.setText(_translate("MainWindow", "Snap To Grid", None))
         self.actionSnapGrid.setToolTip(_translate("MainWindow", "Snap to grid", None))
         self.actionFitAll.setText(_translate("MainWindow", "Fit All", None))
+        self.actionFitAll.setShortcut(_translate("MainWindow", "F", None))
         self.actionFitSelected.setText(_translate("MainWindow", "Fit Selected", None))
+        self.actionFitSelected.setShortcut(_translate("MainWindow", "Shift+F", None))
         self.actionZoomReset.setText(_translate("MainWindow", "Reset Zoom", None))
         self.actionZoomReset.setToolTip(_translate("MainWindow", "Reset Zoom", None))
         self.actionNewParamView.setText(_translate("MainWindow", "New Parameter View", None))

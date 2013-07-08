@@ -507,7 +507,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset>
      <normaloff>:/edit_icons/resources/undo.png</normaloff>:/edit_icons/resources/undo.png</iconset>
    </property>
    <property name="text">
@@ -519,7 +519,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset>
      <normaloff>:/edit_icons/resources/redo.png</normaloff>:/edit_icons/resources/redo.png</iconset>
    </property>
    <property name="text">
@@ -668,7 +668,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset>
      <normaloff>:/show_icons/resources/ledoff.png</normaloff>
      <normalon>:/show_icons/resources/ledon.png</normalon>:/show_icons/resources/ledoff.png</iconset>
    </property>
@@ -712,19 +712,30 @@
    </property>
   </action>
   <action name="actionFitAll">
-   <property name="enabled">
-    <bool>true</bool>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/show_icons/resources/fit_all.png</normaloff>:/show_icons/resources/fit_all.png</iconset>
    </property>
    <property name="text">
     <string>Fit All</string>
+   </property>
+   <property name="shortcut">
+    <string>F</string>
    </property>
    <property name="visible">
     <bool>true</bool>
    </property>
   </action>
   <action name="actionFitSelected">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/show_icons/resources/fit_selected.png</normaloff>:/show_icons/resources/fit_selected.png</iconset>
+   </property>
    <property name="text">
     <string>Fit Selected</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+F</string>
    </property>
    <property name="visible">
     <bool>true</bool>

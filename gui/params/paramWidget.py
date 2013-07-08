@@ -16,6 +16,7 @@ class ParamWidget ( QtGui.QWidget ) :
   # __init__
   #
   def __init__ ( self, param, gfxNode, parent = None, ignoreSubtype = False ) :
+    #
     #print ">> ParamWidget  __init__"
     super ( QtGui.QWidget, self ).__init__ ( None )
     self.param = param
@@ -63,7 +64,6 @@ class ParamWidget ( QtGui.QWidget ) :
     if self.gfxNode is not None :
       if not self.gfxNode.node.type in INVALID_RSL_PARAM_TYPES :
         if self.param.provider != 'attribute' :
-
           self.check = QtGui.QCheckBox ( self )
           self.check.setMinimumSize ( QtCore.QSize ( UI.CHECK_WIDTH, UI.HEIGHT ) )
           self.check.setMaximumSize ( QtCore.QSize ( UI.CHECK_WIDTH, UI.HEIGHT ) )
@@ -76,19 +76,41 @@ class ParamWidget ( QtGui.QWidget ) :
         else :
           spacer = QtGui.QSpacerItem ( UI.LT_SPACE, UI.HEIGHT, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum )
           self.hl.addItem ( spacer )
-
+      #
+      # add 'remove' button for removable parameters
+      #
+      if self.param.removable :
+        self.removeButton = QtGui.QToolButton ( self )
+        sizePolicy = QtGui.QSizePolicy ( QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed )
+        sizePolicy.setHorizontalStretch ( 20 )
+        sizePolicy.setVerticalStretch ( 20 )
+        sizePolicy.setHeightForWidth ( self.removeButton.sizePolicy().hasHeightForWidth() )
+        self.removeButton.setSizePolicy ( sizePolicy )
+        self.removeButton.setMaximumSize ( QtCore.QSize ( 20, 20 ) )
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap ( QtGui.QPixmap ( ':/edit_icons/resources/del_list.png' ), QtGui.QIcon.Normal, QtGui.QIcon.On )
+        self.removeButton.setIcon ( icon1 )
+        self.removeButton.setAutoRaise ( True )
+        self.removeButton.setToolTip ( 'Remove parameter' )
+        self.removeButton.setIconSize ( QtCore.QSize ( 16, 16 ) )
+        self.removeButton.setObjectName ( 'removeButton' )
+        
+        QtCore.QObject.connect ( self.removeButton, QtCore.SIGNAL ( 'clicked()' ), self.onRemoveItem )
+        
+        self.hl.addWidget ( self.removeButton )
+    
     self.label = QtGui.QLabel ( self )
     font = QtGui.QFont ()
     font.setBold ( False )
     self.label.setFont ( font )
-
+  
     #if self.param.type != 'control' :
     self.label.setText ( self.param.label )
-
+  
     self.label.setMinimumSize ( QtCore.QSize ( UI.LABEL_WIDTH, UI.HEIGHT ) )
     self.label.setMaximumSize ( QtCore.QSize ( UI.LABEL_WIDTH, UI.HEIGHT ) )
     self.label.setAlignment ( QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter )
-
+  
     self.hl.addWidget ( self.label )
     self.vl.addWidget ( self.gui )
   #
@@ -105,4 +127,11 @@ class ParamWidget ( QtGui.QWidget ) :
     #
     spacer = QtGui.QSpacerItem ( 20, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum )
     self.hl.addItem ( spacer )
+  #
+  # onRemoveItem
+  #
+  def onRemoveItem ( self ) : 
+    #
+    print '>> ParamWidget( %s ).onRemoveItem ' % self.param.name   
+    self.emit ( QtCore.SIGNAL ( 'nodeParamRemoved' ), self.param ) 
 

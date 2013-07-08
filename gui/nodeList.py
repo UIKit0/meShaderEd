@@ -18,7 +18,7 @@ from ui_nodeList import Ui_nodeList
 from core.node import Node
 from core.nodeLibrary import NodeLibrary
 #
-#
+# NodeList
 #
 class NodeList ( QtGui.QWidget ) :
   #

@@ -67,7 +67,7 @@ app_renderer = meRendererPreset ( os.path.join ( root, 'renderers.xml' ), defRen
 #app_renderer.setPresetFile ( os.path.join( root, 'renderers.xml' ), defRenderer )
 
 #
-#
+# main routine
 #
 def main ():
   #global root

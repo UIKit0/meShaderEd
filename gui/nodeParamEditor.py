@@ -121,6 +121,7 @@ class NodeParamEditor ( QtGui.QWidget ) :
   # onParamValueChanged
   #
   def onParamValueChanged ( self, param ) :
+    #
     if DEBUG_MODE : print '* onParamValueChanged'
     self.param.value = param.value
   #
@@ -245,18 +246,12 @@ class NodeParamEditor ( QtGui.QWidget ) :
 
         # create paramWidget without GfxNode and ignoreSubtype = True
         self.ui.value_widget = apply ( self.paramWidgets [ self.param.type ], [ self.param, None, self, True ] )
-
         self.ui.value_widget.label.setText ( 'Current Value' )
-        self.ui.value_widget.label.setMinimumSize ( QtCore.QSize ( 100, UI.HEIGHT ) )
-        self.ui.value_widget.label.setMaximumSize ( QtCore.QSize ( 100, UI.HEIGHT ) )
 
         frameLayout.addWidget ( self.ui.value_widget )
-
+        
         self.ui.def_value_widget = apply ( self.paramWidgets [ self.param_default.type ], [ self.param_default, None, self, True ] )
-
         self.ui.def_value_widget.label.setText ( 'Default Value' )
-        self.ui.def_value_widget.label.setMinimumSize ( QtCore.QSize ( 100, UI.HEIGHT ) )
-        self.ui.def_value_widget.label.setMaximumSize ( QtCore.QSize ( 100, UI.HEIGHT ) )
 
         frameLayout.addWidget ( self.ui.def_value_widget )
 
