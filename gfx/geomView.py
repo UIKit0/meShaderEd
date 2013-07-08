@@ -1,4 +1,5 @@
 """
+ 
  geomView.py
 
 """
@@ -11,7 +12,29 @@ from OpenGL.GL import *
 from PyQt4 import QtCore, QtGui, QtOpenGL
 #from PyQt4.QtOpenGL import * #QGLFunctions
 
-PI = 3.14159
+PI = 3.14159265
+def DEGTORAD ( x ) : return ( float ( x ) * 0.01745329251994 ) # (x * PI ) / 180.0
+def RADTODEG ( x ) : return ( float ( x ) / 0.01745329251994 ) # (x * 180.0) / PI
+      
+"""
+GLfloat lightPosition[] = { 20.f, 50.f, 0.f, 1.f };
+
+GLfloat lightAmbient[] = { .4f, .4f, .4f };
+GLfloat lightDiffuse[] = { .8f, .8f, .8f };
+GLfloat lightSpecular[] = { 1.f, 1.f, 1.f, 1.f };
+GLint defaultShininess = 96;
+
+GLfloat grayAmbient[] = { .3f, .3f, .3f, 1.f };
+GLfloat grayDiffuse[] = { .8f, .8f, .8f, 1.f };
+GLfloat whiteSpecular[] = { 1.f, 1.f, 1.f, 1.f };
+
+bool _shouldDrawWireframe = false;
+bool _shouldDrawFlat = false;
+bool _shouldDrawSmooth = true;
+bool _shouldDrawPoints = false;
+bool _shouldDrawNormals = false;
+
+"""
 #
 # GeomView
 #
@@ -28,14 +51,15 @@ class GeomView ( QtOpenGL.QGLWidget ) : # , QGLFunctions
     
     self.state = 'idle'
     self.pressed = False
-    self.panStartPos = None
+    self.startPos = None
     
     self.bgColor = [ .3, .3, .3, 0.0 ]
     self.fgColor = [ .45, .45, .45, 0.0 ]
     
     self.modelMatrix = QtGui.QMatrix4x4 ()
     self.projectionMatrix = QtGui.QMatrix4x4 ()
-    self.fov = 60.0
+    
+    self.fov = 45.0
     self.roll = 0.0
     self.zNear = 0.01
     self.zFar = 1000.0
@@ -47,35 +71,16 @@ class GeomView ( QtOpenGL.QGLWidget ) : # , QGLFunctions
     self.isGridVisible = True
     self.headLight = False
 
+    self.printModelMatrix ()
     self.modelMatrix.translate ( 0.0, 0.0, 10.0 )
+    self.printModelMatrix ()
     self.target = QtGui.QVector3D ( 0.0, 0.0, 0.0 )
-    #orbit(-40, 45);
-    #dolly(240);
+    self.orbit ( 45, -45 )
+    self.dolly ( 240 )
+    self.printModelMatrix ()
     
-    #self.setAutoBufferSwap ( True ) 
+    self.geom_code = ''
     
-    self.geom_code = """
-glEnableClientState ( GL_VERTEX_ARRAY )
-spiral_array = []
-# Second Spiral using "array immediate mode" (i.e. Vertex Arrays)
-radius = 0.8
-x = radius * math.sin ( 0 )
-y = radius * math.cos ( 0 )
-glColor ( 1.0, 0.0, 0.0 )
-for deg in xrange ( 820 ):
-  spiral_array.append ( [x, y] )
-  rad = math.radians ( deg )
-  radius -= 0.001
-  x = radius * math.sin ( rad )
-  y = radius * math.cos ( rad )
-
-glVertexPointerf ( spiral_array )
-glDrawArrays ( GL_LINE_STRIP, 0, len ( spiral_array ) )
-glFlush ()
-
-
-
-"""
     print '>> GeomView init'
   #
   # initializeGL
@@ -104,8 +109,7 @@ glFlush ()
   #
   def resizeGL ( self, w, h ) :
     #
-    print '>> GeomeView.resizeGL (%d, %d)' % ( w, h )
-    
+    #print '>> GeomeView.resizeGL (%d, %d)' % ( w, h )
     self.width = w
     self.height = h
     if self.height == 0 : self.height = 1
@@ -116,7 +120,7 @@ glFlush ()
   #
   def prepareForDrawing ( self ) :
     #
-    print '>> GeomeView.prepareForDrawing'
+    #print '>> GeomeView.prepareForDrawing'
     self.setupProjection ()
     glViewport ( 0, 0, self.width, self.height )
   
@@ -136,30 +140,21 @@ glFlush ()
   #
   def setupProjection ( self ) :
     #
-    print '>> GeomeView.setupProjection'
+    #print '>> GeomeView.setupProjection'
     glMatrixMode ( GL_PROJECTION )
     
     if self.isProjDirty :
       glLoadIdentity()
-
       height = float ( self.zNear * math.tan ( self.fov * PI / 360.0) )
       width = float ( height )
       aspect = float ( float ( self.width ) / float ( self.height ) )
-      
       if aspect > 1.0 :
         height = float ( height / aspect )
       else :
         width = float ( height * aspect )
-        
-      print width, height, aspect 
-
+      # print width, height, aspect 
       glFrustum ( -width, width, -height, height, self.zNear, self.zFar )
       params = glGetFloatv ( GL_PROJECTION_MATRIX )
-      #print params
-      #print params [0][0],  params [0][1],  params [0][2],  params [0][3]
-      #print params [1][0],  params [1][1],  params [1][2],  params [1][3]
-      #print params [2][0],  params [2][1],  params [2][2],  params [2][3]
-      #print params [3][0],  params [3][1],  params [3][2],  params [3][3]
       self.projectionMatrix = QtGui.QMatrix4x4 ( params [0][0],  params [0][1],  params [0][2],  params [0][3], 
                                                  params [1][0],  params [1][1],  params [1][2],  params [1][3],
                                                  params [2][0],  params [2][1],  params [2][2],  params [2][3],
@@ -177,21 +172,18 @@ glFlush ()
   #
   def updateGL ( self ) :
     #
-    print ">> GeomeView.updateGL"
+    #print ">> GeomeView.updateGL"
     QtOpenGL.QGLWidget.updateGL ( self )
   #
   # paintGL
   #
   def paintGL ( self ) :
     #
-    print ">> GeomeView.paintGL"
-    
+    #print ">> GeomeView.paintGL"
     #glClearColor ( 0, 0, 0, 0 ) # ( self.bgColor [0], self.bgColor [1], self.bgColor [2], 0.0 )
     glClearColor ( self.bgColor [0], self.bgColor [1], self.bgColor [2], 0 )
     glClearDepth ( 1.0 )
     glClear ( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) # ( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT )
-    #self.swapBuffers ()
-    
   
     self.prepareForDrawing ()
   
@@ -201,7 +193,6 @@ glFlush ()
     if self.isGridVisible : self.drawGrid ()
   
     #self.drawAxis();
-  
     #glShadeModel ( GL_SMOOTH )
     #glEnable ( GL_LIGHTING )
     
@@ -213,69 +204,41 @@ glFlush ()
       glLightfv ( GL_LIGHT0, GL_POSITION, lightPosition )
     
     #self.prepareForDrawing ()
-    
-    #MainDrawRoutine::drawAll();
-
+    self.drawAll();
   #
-  # drawGrid
-  #
-  def drawGrid ( self ) :
+  # drawAll
+  #    
+  def drawAll ( self ) :
     #
-    print ">> GeomeView.drawGrid"
-    #print self.autoBufferSwap ()
-    #glClear ( GL_DEPTH_BUFFER_BIT ) #| GL_DEPTH_BUFFER_BIT ) | GL_COLOR_BUFFER_BIT
-    #glLoadIdentity ()
-    
-    """
-    glColor3f ( self.fgColor [0], self.fgColor [1], self.fgColor [2] )
-    glBegin ( GL_QUADS )
-    glVertex3f ( 0,  -0.001, 0  )
-    glVertex3f ( 0,  -0.001, 20 )
-    glVertex3f ( 20, -0.001, 20 )
-    glVertex3f ( 20, -0.001, 0 )
-    glEnd ()
-    
-    glBegin ( GL_LINES )
-    for i in range ( 20 ) :
-      if i == 0 : 
-        glColor3f ( .6, .3, .3 ) 
-      else : 
-        glColor3f ( .25, .25, .25 )
-      glVertex3f ( i, 0, 0 )
-      glVertex3f ( i, 0, 20 )
-      if i==0 : 
-        glColor3f ( .3, .3, .6 )
-      else :
-        glColor3f ( .25, .25, .25 )
-      glVertex3f ( 0,  0, i )
-      glVertex3f ( 20, 0, i )
-    
-    glEnd ()
-    """
-    
-    count = 20
-    scale = 1.0
-    
-    glColor3f ( 0.45, 0.45, 0.45 )
-    glLineWidth ( 1.0 )
-    glBegin ( GL_LINES )
-    for w in range ( count ) :
-      glVertex3f ( -count / 2 * scale, 0, ( w - count / 2 ) * scale )
-      glVertex3f ( ( count - count / 2) * scale, 0, ( w - count / 2 ) * scale )
-    for w in range ( count ) :
-      glVertex3f ( ( w - count / 2 ) * scale, 0, -count / 2 * scale )
-      glVertex3f ( ( w - count / 2 ) * scale, 0, ( count - count / 2 ) * scale )
-    glEnd ()
-    
-    # draw 2 middle lines again
-    glColor3f ( 0.9, 0.2, 0.2 )
-    glLineWidth ( 1.0 )
-    glBegin ( GL_LINES )
-    glVertex3f ( -count / 2 * scale, 0, ( count / 2 - count / 2 ) * scale )
-    glVertex3f ( ( count - ( count / 2 ) ) * scale, 0, ( count / 2 - count / 2 ) * scale )
-    glVertex3f ( ( count / 2 - count / 2 ) * scale, 0, -count / 2 * scale )
-    glVertex3f ( ( count / 2 - count / 2 ) * scale, 0, ( count - count / 2 ) * scale )
-    glEnd ()
+    self.drawSpiral ()
+  #
+  # drawSpiral ( self ) :
+  #
+  def drawSpiral ( self ) :
+    #
+    spiral_code = """
+glEnableClientState ( GL_VERTEX_ARRAY )
+spiral_array = []
+# Second Spiral using "array immediate mode" (i.e. Vertex Arrays)
+radius = 0.8
+x = radius * math.sin ( 0 )
+y = radius * math.cos ( 0 )
+glColor ( 1.0, 0.0, 0.0 )
+for deg in xrange ( 820 ):
+  spiral_array.append ( [x, y] )
+  rad = math.radians ( deg )
+  radius -= 0.001
+  x = radius * math.sin ( rad )
+  y = radius * math.cos ( rad )
+
+glVertexPointerf ( spiral_array )
+glDrawArrays ( GL_LINE_STRIP, 0, len ( spiral_array ) )
+glFlush ()
+
+
+
+    """    
+    exec spiral_code
     
     # Draw the spiral in 'immediate mode'
     # WARNING: You should not be doing the spiral calculation inside the loop
@@ -293,27 +256,254 @@ glFlush ()
       x = radius * math.sin ( rad )
       y = radius * math.cos ( rad )
     glEnd ()
-    
-    exec self.geom_code
   #
-  # dolly
+  # drawGrid
+  #
+  def drawGrid ( self ) :
+    #
+    #print ">> GeomeView.drawGrid"
+    count = 20
+    scale = 1.0
+    
+    glColor3f ( 0.45, 0.45, 0.45 )
+    glLineWidth ( 1.0 )
+    glBegin ( GL_LINES )
+    for w in range ( count + 1 ) :
+      glVertex3f ( -count / 2 * scale, 0, ( w - count / 2 ) * scale )
+      glVertex3f ( ( count - count / 2) * scale, 0, ( w - count / 2 ) * scale )
+    for w in range ( count + 1 ) :
+      glVertex3f ( ( w - count / 2 ) * scale, 0, -count / 2 * scale )
+      glVertex3f ( ( w - count / 2 ) * scale, 0, ( count - count / 2 ) * scale )
+    glEnd ()
+    
+    # draw 2 middle lines again
+    glColor3f ( 0.9, 0.2, 0.2 )
+    glLineWidth ( 1.0 )
+    glBegin ( GL_LINES )
+    glVertex3f ( -count / 2 * scale, 0, ( count / 2 - count / 2 ) * scale )
+    glVertex3f ( ( count - ( count / 2 ) ) * scale, 0, ( count / 2 - count / 2 ) * scale )
+    glVertex3f ( ( count / 2 - count / 2 ) * scale, 0, -count / 2 * scale )
+    glVertex3f ( ( count / 2 - count / 2 ) * scale, 0, ( count - count / 2 ) * scale )
+    glEnd ()
+  #
+  #
+  #
+  def drawAxis ( self ) :
+    #
+    pass
+    """
+    void Viewport::drawAxis(){
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    
+    glOrtho(-1, 1, -1, 1, -1, 1);
+    glViewport(0, 0, 50, 50);
+    
+    GLfloat mvm[16];
+    glMatrixMode(GL_MODELVIEW);
+    glGetFloatv(GL_MODELVIEW_MATRIX, mvm);
+    mvm[12] = mvm[13] = mvm[14] = 0.f;
+    glLoadMatrixf(mvm);
+    
+    glLineWidth(2.f);
+    glBegin(GL_LINES);
+    {
+      // X
+      glColor3f(1.f, 0.f, 0.f);
+      glVertex3f(0.f, 0.f, 0.f);
+      glVertex3f(1.f, 0.f, 0.f);
+      // Y
+      glColor3f(0.f, 1.f, 0.f);
+      glVertex3f(0.f, 0.f, 0.f);
+      glVertex3f(0.f, 1.f, 0.f);
+      // Z
+      glColor3f(0.f, 0.f, 1.f);
+      glVertex3f(0.f, 0.f, 0.f);
+      glVertex3f(0.f, 0.f, 1.f);
+    }
+    glEnd();
+    """
+  #
+  #
+  #
+  def printModelMatrix ( self ) :
+    #
+    print '*** self.modelMatrix :'
+    #print self.modelMatrix
+    row0 = self.modelMatrix.row ( 0 )
+    row1 = self.modelMatrix.row ( 1 )
+    row2 = self.modelMatrix.row ( 2 ) 
+    row3 = self.modelMatrix.row ( 3 ) 
+    print row0.x (), '\t', row0.y (), '\t', row0.z (), '\t', row0.w ()
+    print row1.x (), '\t', row1.y (), '\t', row1.z (), '\t', row1.w ()
+    print row2.x (), '\t', row2.y (), '\t', row2.z (), '\t', row2.w ()
+    print row3.x (), '\t', row3.y (), '\t', row3.z (), '\t', row3.w ()
+    print '***'
+  #
+  # self.modelMatrix translation
+  #
+  # Matrix44<T>::translation () const
+  # {
+  #   return Vec3<T> (x[3][0], x[3][1], x[3][2]);
+  # }
+  #
+  def translation0 ( self ) :
+    #
+    row3 = self.modelMatrix.row ( 3 ) 
+    return QtGui.QVector3D ( row3.x (), row3.y (), row3.z () )
+  #
+  def translation ( self ) :
+    #
+    row0 = self.modelMatrix.row ( 0 )
+    row1 = self.modelMatrix.row ( 1 )
+    row2 = self.modelMatrix.row ( 2 ) 
+    #row3 = self.modelMatrix.row ( 3 ) 
+    return QtGui.QVector3D ( row0.w (), row1.w (), row2.w () )
+    #return QtGui.QVector3D ( row3.x (), row3.y (), row3.z () )
+  #
+  # self.modelMatrix dollyVector
+  #
+  def dollyVector ( self ) :
+    #
+    # cam does dolly on its Z local axis (QtGui.QVector4D )
+    row2 = self.modelMatrix.row ( 2 ) 
+    return QtGui.QVector3D ( row2.x (), row2.y (), row2.z () )
+  #
+  # viewport pan
+  #
+  def pan ( self, deltaSide, deltaUp ) :
+    #
+    translation = self.translation ()
+    lenDist = ( translation - self.target ).length() 
+    factorX = lenDist * 0.001 * -deltaSide
+    factorY = lenDist * 0.001 * deltaUp
+    
+    panVec = QtGui.QVector3D ( factorX, factorY, 0.0 )
+    self.modelMatrix.translate ( panVec.x (), panVec.y (), panVec.z () )
+    translation_new = self.translation ()
+  #
+  # viewport dolly
   #
   def dolly ( self, deltaSide ) :
     #
     if deltaSide != 0 :
-      print '* deltaSide = %d' % deltaSide
-      row0 = self.modelMatrix.row ( 0 )
-      row1 = self.modelMatrix.row ( 1 )
-      row2 = self.modelMatrix.row ( 2 ) # cam does dolly on its Z local axis (QtGui.QVector4D )
-      dollyVec = QtGui.QVector3D ( row2.x (), row2.y (), row2.z () )
-      translation = QtGui.QVector3D ( row0.w (), row1.w (), row2.w () )
-      #print self.modelMatrix
-      #print row2
-      #print dollyVec
-      #print translation
-      dollyVec *= ( deltaSide * ( translation - self.target).length() * 0.01 )
+      #print '* deltaSide = %d' % deltaSide
+      dollyVec = self.dollyVector ()
+      translation = self.translation ()
+      dollyVec *= ( deltaSide * ( translation - self.target ).length() * 0.01 )
       self.modelMatrix.translate ( dollyVec.x (), dollyVec.y (), dollyVec.z () )
-      #print self.modelMatrix
+  #
+  # viewport orbit
+  #
+  def orbit ( self, deltaSide, deltaUp ) :
+    #
+    #
+    # setAxisAngle
+    #
+    # original code from OpenEXR library (ImathMatrix.h)
+    # Matrix44<T>::setAxisAngle (const Vec3<S>& axis, S angle)
+    #
+    def setAxisAngle ( vec3, angle ) :
+      #
+      unit = vec3.normalized ()
+      sine = math.sin ( angle )
+      cosine = math.cos ( angle ) 
+      
+      m11 = unit.x () * unit.x () * ( 1 - cosine ) + cosine
+      m12 = unit.x () * unit.y () * ( 1 - cosine ) + unit.z () * sine
+      m13 = unit.x () * unit.z () * ( 1 - cosine ) - unit.y () * sine
+      m14 = 0.0
+      
+      m21 = unit.x () * unit.y () * ( 1 - cosine ) - unit.z () * sine
+      m22 = unit.y () * unit.y () * ( 1 - cosine ) + cosine
+      m23 = unit.y () * unit.z () * ( 1 - cosine ) + unit.x () * sine
+      m24 = 0.0
+      
+      m31 = unit.x () * unit.z () * ( 1 - cosine ) + unit.y () * sine
+      m32 = unit.y () * unit.z () * ( 1 - cosine ) - unit.x () * sine
+      m33 = unit.z () * unit.z () * ( 1 - cosine ) + cosine
+      m34 = 0.0
+      
+      m41 = 0.0
+      m42 = 0.0
+      m43 = 0.0
+      m44 = 1.0
+      
+      return QtGui.QMatrix4x4 ( m11, m12, m13, m14,
+                                m21, m22, m23, m24,
+                                m31, m32, m33, m34,
+                                m41, m42, m43, m44
+                              )
+    cam = self.translation0 ()
+    row3 = self.modelMatrix.row ( 3 ) 
+    row3.setX ( 0 ) 
+    row3.setY ( 0 )
+    row3.setZ ( 0 )
+    self.modelMatrix.setRow ( 3, row3 )
+    
+    mUp     = setAxisAngle ( QtGui.QVector3D ( 1.0, 0.0, 0.0 ),  DEGTORAD ( float ( -deltaUp ) * 0.05 ) ) 
+    mSide   = setAxisAngle ( QtGui.QVector3D ( 0.0, 1.0, 0.0 ),  DEGTORAD ( float ( -deltaSide ) * 0.05 ) ) 
+    mRoll   = setAxisAngle ( QtGui.QVector3D ( 0.0, 0.0, 1.0 ),  DEGTORAD ( self.roll ) ) 
+    mUnroll = setAxisAngle ( QtGui.QVector3D ( 0.0, 0.0, -1.0 ), DEGTORAD ( self.roll ) ) 
+    
+    self.modelMatrix = ( mRoll * ( ( mUp * mUnroll * self.modelMatrix ) * mSide ) )
+    
+    # create a new cam (0,0,cam-target), mul it by cam matrix, add target
+    camNew = QtGui.QVector3D ( 0.0, 0.0, ( cam - self.target ).length() )
+    cam *= self.modelMatrix
+    cam += self.target;
+    
+    row3 = self.modelMatrix.row ( 3 ) 
+    row3.setX ( camNew.x () ) 
+    row3.setY ( camNew.y () )
+    row3.setZ ( camNew.z () )
+    self.modelMatrix.setRow ( 3, row3 )
+    
+    """
+    Imath::V3f cam(_modelMatrix.translation());
+  _modelMatrix.x[3][0] = _modelMatrix.x[3][1] = _modelMatrix.x[3][2] = 0.f;
+  
+  Imath::M44f mUp, mSide, mRoll, mUnroll;
+  mUp.setAxisAngle(Imath::V3f(1.f, 0.f, 0.f), (float)DEGTORAD((float)-deltaUp * 0.5f)); // setRotationX(deltaSide)
+  mSide.setAxisAngle(Imath::V3f(0.f, 1.f, 0.f), (float)DEGTORAD((float)-deltaSide * 0.5f));// setRotationY(..)
+  mRoll.setAxisAngle(Imath::V3f(0.f, 0.f, 1.f), (float)DEGTORAD(_roll));
+  mUnroll.setAxisAngle(Imath::V3f(0.f, 0.f, -1.f), (float)DEGTORAD(_roll));
+  
+  _modelMatrix.setValue(mRoll *((mUp * mUnroll * _modelMatrix) * mSide));
+  
+  // create a new cam (0,0,cam-target), mul it by cam matrix, add target
+  cam.setValue(0.f, 0.f, (cam - _target).length());
+  cam *= _modelMatrix;
+  cam += _target;
+  
+  _modelMatrix.x[3][0] = cam.x;
+  _modelMatrix.x[3][1] = cam.y;
+  _modelMatrix.x[3][2] = cam.z;
+    """
+    
+  
+  """
+  void Viewport::zoom(int deltaSide){
+  float newFov = _fov - (float)deltaSide * 0.5;
+
+  if(newFov > 0){
+    _fov = newFov;
+    _isProjDirty = true;
+  }
+}
+
+void Viewport::roll(int deltaSide){
+  if(deltaSide != 0){
+  
+    _roll += deltaSide;
+  
+    Imath::M44f mRoll;
+    mRoll.setAxisAngle(Imath::V3f(0.f, 0.f, 1.f), (float)DEGTORAD(deltaSide));
+  
+    _modelMatrix.setValue(mRoll * _modelMatrix);
+  }
+}
+  """
   #
   # timerEvent
   #
@@ -339,35 +529,28 @@ glFlush ()
       self.isProjDirty = True
       self.updateGL ()
       
-    QtGui.QWidget.wheelEvent ( self, event)
-    
-    """
-    #if qWheelEvent.orientation() == QtCore.Qt.Vertical:
-    #        self._viewport.dolly(int(qWheelEvent.delta() * -0.1))
-    #        self.updateGL()
-    #        self._dirtyCameraNodes()
-    # QtGui.QGraphicsView.wheelEvent( self, event)
-    scale = -1.0
-    if 'linux' in sys.platform: scale = 1.0
-    
-    scaleFactor = math.pow ( 2.0, scale * event.delta () / 600.0 )
-    factor = self.matrix ().scale ( scaleFactor, scaleFactor ).mapRect ( QtCore.QRectF ( -1, -1, 2, 2 ) ).width ()
-    if factor < 0.07 or factor > 100: return
-    self.scale ( scaleFactor, scaleFactor )
-    """
+    #QtGui.QWidget.wheelEvent ( self, event)
   #
   # mousePressEvent
   #
   def mousePressEvent ( self, event ) :
     #
     #print ">> GeomeView: mousePressEvent"
-    if ( event.button () == QtCore.Qt.MidButton or
-        ( event.button () == QtCore.Qt.LeftButton and event.modifiers () == QtCore.Qt.ShiftModifier ) ) :
-      if self.state == 'idle' :
-        # self.panStartPos = self.mapToScene ( event.pos () )
-        self.state = 'pan'
-        return
-    QtGui.QWidget.mousePressEvent ( self, event )
+    self.setFocus ()
+    self.startPos = event.pos ()
+    self.pressed = True
+    button = event.button ()
+    modifiers = event.modifiers ()
+    
+    if ( button == QtCore.Qt.LeftButton and modifiers == QtCore.Qt.AltModifier ) :
+      self.state = 'orbit'
+    elif ( button == QtCore.Qt.MidButton or ( button == QtCore.Qt.LeftButton and modifiers == QtCore.Qt.ShiftModifier ) ) :
+      self.state = 'pan'
+    elif ( button == QtCore.Qt.RightButton and modifiers == QtCore.Qt.ShiftModifier ) :
+      self.state = 'zoom'
+      print "* ZOOM from %f %f" % ( self.startPos.x(), self.startPos.y() )
+    #else :
+    #  QtGui.QWidget.mousePressEvent ( self, event )
   #
   # mouseDoubleClickEvent
   #
@@ -382,25 +565,33 @@ glFlush ()
   def mouseMoveEvent ( self, event ) :
     #
     #print ">> GeomeView.mouseMoveEvent"
-    if self.state == 'pan' :
-      #panCurrentPos = self.mapToScene ( event.pos () )
-      panDeltaPos = panCurrentPos - self.panStartPos
-      # update view matrix
-      self.setInteractive ( False )
-      self.translate ( panDeltaPos.x (), panDeltaPos.y () )
-      self.setInteractive ( True )
-    else :
-      QtGui.QWidget.mouseMoveEvent ( self, event )
+    if self.pressed :
+      currentPos = event.pos ()
+      deltaPos = currentPos - self.startPos
+      if self.state == 'pan' :
+        self.pan ( deltaPos.x (), deltaPos.y () )
+      elif self.state == 'orbit' :
+        self.orbit ( deltaPos.x (), deltaPos.y () )
+      elif self.state == 'zoom' :
+        deltaSide = float ( deltaPos.x () * -0.1 ) # delta.x () * -0.01
+        print "* zoom to %f %f (%f) " % ( currentPos.x(), currentPos.y(), deltaSide )
+        self.dolly ( deltaSide )
+      self.isProjDirty = True
+      self.updateGL ()
+      self.startPos = currentPos   
+    #else :
+    #  QtGui.QWidget.mouseMoveEvent ( self, event )
   #
   # mouseReleaseEvent
   #
   def mouseReleaseEvent ( self, event ) :
     #
     #print ">> GeomeView.mouseReleaseEvent"
-    if self.state == 'pan' :
+    if self.state in [ 'pan', 'zoom', 'orbit' ] :
       self.state = 'idle'
-      self.panStartPos = None
-    QtGui.QWidget.mouseReleaseEvent ( self, event )
+      self.startPos = None
+      self.pressed = False
+    #QtGui.QWidget.mouseReleaseEvent ( self, event )
   #
   # viewportEvent
   #
@@ -411,6 +602,21 @@ glFlush ()
     if event.type () == QtCore.QEvent.TouchBegin :
       print ">> ImageView: QEvent.TouchBegin"
     return QtGui.QWidget.viewportEvent ( self, event )
+  #
+  # resetView
+  #
+  def resetView ( self ) :
+    #
+    self.printModelMatrix ()
+    self.modelMatrix.setToIdentity ()
+    self.modelMatrix.translate ( 0.0, 0.0, 10.0 )
+    self.target = QtGui.QVector3D ( 0.0, 0.0, 0.0 )
+    self.orbit ( 45, -45 )
+    self.dolly ( 240 )
+    self.printModelMatrix ()
+    
+    self.isProjDirty = True
+    self.updateGL ()
 
 
 
