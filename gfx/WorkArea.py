@@ -133,9 +133,9 @@ class WorkArea ( QtGui.QGraphicsView ) :
     resultList = []
     for item in self.scene ().items () :
       if ( isinstance ( item, GfxNode ) or
+           isinstance ( item, GfxSwatchNode ) or 
            ( isinstance ( item, GfxNodeConnector ) and item.isNode () ) ) :
         if type is None or item.node.type == type :
-          # print '>> item.node.type = %s' % item.node.type
           resultList.append ( item )
     return resultList
   #

@@ -6,6 +6,7 @@
     <file>resources/new.png</file>
   </qresource>
   <qresource prefix="show_icons">
+    <file>resources/show_connect.png</file>
     <file>resources/fit_all.png</file>
     <file>resources/fit_selected.png</file>
     <file>resources/check_off.png</file>
