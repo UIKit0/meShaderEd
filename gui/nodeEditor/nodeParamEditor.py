@@ -1,12 +1,13 @@
-#===============================================================================
-# nodeParamEditor.py
-#
-# ver. 1.0.0
-# Author: Yuri Meshalkin (aka mesh) (yuri.meshalkin@gmail.com)
-#
-# Dialog for managing node
-#
-#===============================================================================
+"""
+ nodeParamEditor.py
+
+ ver. 1.0.0
+ 
+ Author: Yuri Meshalkin (aka mesh) (mesh@kpp.kiev.ua)
+
+ Dialog for managing node parameters
+
+"""
 import os, sys
 from PyQt4 import QtCore, QtGui
 
@@ -36,7 +37,7 @@ class NodeParamEditor ( QtGui.QWidget ) :
   #
   def __init__ ( self, parent ) :
     #
-    QtGui.QDialog.__init__ ( self )
+    QtGui.QWidget.__init__ ( self, parent )
     self.param = None
     self.param_default = None
     self.paramWidgets = {  'string'       : StringWidget
@@ -64,6 +65,7 @@ class NodeParamEditor ( QtGui.QWidget ) :
   #
   #
   def __delete__ ( self, obj ) :
+    #
     print '* NodeParamEditor closed... %s' % str( obj )
   #
   # buildGui
@@ -117,6 +119,7 @@ class NodeParamEditor ( QtGui.QWidget ) :
     #
     if DEBUG_MODE : print '* onParamDefValueChanged'
     self.param.default = self.param_default.value
+    self.emit ( QtCore.SIGNAL ( 'changeParamDefValue' ), self.param )
   #
   # onParamValueChanged
   #
@@ -124,12 +127,14 @@ class NodeParamEditor ( QtGui.QWidget ) :
     #
     if DEBUG_MODE : print '* onParamValueChanged'
     self.param.value = param.value
+    self.emit ( QtCore.SIGNAL ( 'changeParamValue' ), self.param )
   #
   # connectSignals
   #
   def connectSignals ( self ) :
     #
     self.connect ( self.param_default, QtCore.SIGNAL ( 'paramChanged(QObject)' ), self.onParamDefValueChanged )
+    self.connect ( self.param, QtCore.SIGNAL ( 'paramChanged(QObject)' ), self.onParamValueChanged )
     self.connect ( self.ui.name_lineEdit, QtCore.SIGNAL ( 'editingFinished()' ), self.onEditParamName )
     self.connect ( self.ui.label_lineEdit, QtCore.SIGNAL ( 'editingFinished()' ), self.onEditParamLabel )
     self.connect ( self.ui.check_enabled, QtCore.SIGNAL ( 'stateChanged(int)' ), self.onEditParamEnabled )
@@ -149,6 +154,7 @@ class NodeParamEditor ( QtGui.QWidget ) :
     if self.param_default is not None :
       self.disconnect ( self.param_default, QtCore.SIGNAL ( 'paramChanged(QObject)' ), self.onParamDefValueChanged )
     if self.param is not None :
+      self.disconnect ( self.param, QtCore.SIGNAL ( 'paramChanged(QObject)' ), self.onParamValueChanged )
       self.disconnect ( self.ui.name_lineEdit, QtCore.SIGNAL ( 'editingFinished()' ), self.onEditParamName )
       self.disconnect ( self.ui.label_lineEdit, QtCore.SIGNAL ( 'editingFinished()' ), self.onEditParamLabel )
       self.disconnect ( self.ui.check_enabled, QtCore.SIGNAL ( 'stateChanged(int)' ), self.onEditParamEnabled )
@@ -231,29 +237,37 @@ class NodeParamEditor ( QtGui.QWidget ) :
       doc.setDocumentLayout( layout )
 
       self.ui.descr_plainTextEdit.setDocument ( doc )
-
-      frame = QtGui.QFrame()
-
-      frameLayout = QtGui.QVBoxLayout ()
-      frameLayout.setSpacing ( UI.SPACING )
-      frameLayout.setMargin ( 0 ) # UI.SPACING )
-      frameLayout.setAlignment ( QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft )
-
-      frame.setLayout( frameLayout )
+      #
+      # setup param values view
+      #
+      paramsLayout = QtGui.QGridLayout ()
+      paramsLayout.setContentsMargins ( 2, 2, 2, 2 )
+      paramsLayout.setSizeConstraint ( QtGui.QLayout.SetNoConstraint )
+      paramsLayout.setVerticalSpacing ( 4 )
+      paramsLayout.setColumnStretch ( 1, 1 )
+      paramsLayout.setRowStretch ( 2, 1 )
+      
+      frame = QtGui.QFrame ()
+      frame.setLayout ( paramsLayout )
 
       if self.param.type in self.paramWidgets.keys () :
         print '>> Create %s param widget' % self.param.type
 
         # create paramWidget without GfxNode and ignoreSubtype = True
-        self.ui.value_widget = apply ( self.paramWidgets [ self.param.type ], [ self.param, None, self, True ] )
+        self.ui.value_widget = apply ( self.paramWidgets [ self.param.type ], [ self.param, None, True ] )
         self.ui.value_widget.label.setText ( 'Current Value' )
-
-        frameLayout.addWidget ( self.ui.value_widget )
         
-        self.ui.def_value_widget = apply ( self.paramWidgets [ self.param_default.type ], [ self.param_default, None, self, True ] )
+        paramsLayout.addLayout ( self.ui.value_widget.label_vl, 0, 0, 1, 1 )
+        paramsLayout.addLayout ( self.ui.value_widget.param_vl, 0, 1, 1, 1 )
+        
+        self.ui.def_value_widget = apply ( self.paramWidgets [ self.param_default.type ], [ self.param_default, None, True ] )
         self.ui.def_value_widget.label.setText ( 'Default Value' )
 
-        frameLayout.addWidget ( self.ui.def_value_widget )
+        paramsLayout.addLayout ( self.ui.def_value_widget.label_vl, 1, 0, 1, 1 )
+        paramsLayout.addLayout ( self.ui.def_value_widget.param_vl, 1, 1, 1, 1 )
+        
+        spacer = QtGui.QSpacerItem ( 20, 20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding )
+        paramsLayout.addItem ( spacer, 2, 0, 1, 1 ) 
 
       self.ui.value_stackedWidget.addWidget ( frame )
       self.connectSignals ()
@@ -266,37 +280,62 @@ class NodeParamEditor ( QtGui.QWidget ) :
     #
     # !!! ListWidget item for param also should be changed
     #
+    oldName = self.param.name
     newName = str ( self.ui.name_lineEdit.text () ).strip ()
     if newName == '' :
-      newName = self.param.name
-      self.ui.name_lineEdit.setText ( self.param.name )
-    if newName != self.param.name :
-      self.emit( QtCore.SIGNAL ( 'changeParamName' ), self.param.name, newName )
+      newName = oldName
+      self.ui.name_lineEdit.setText ( newName )
+    if newName != oldName :
+      self.param.name = newName
+      self.emit( QtCore.SIGNAL ( 'changeParamName' ), oldName, newName )
   #
   # onEditParamLabel
   #
   def onEditParamLabel ( self ) :
     #
+    oldName = self.param.label
     newName  = str ( self.ui.label_lineEdit.text () ).strip ()
     if newName == '' :
-      newName = self.param.label
-      self.ui.label_lineEdit.setText ( self.param.label )
-    if newName != self.param.label :
-      self.emit( QtCore.SIGNAL ( 'changeParamLabel' ), self.param.label, newName )
+      newName = oldName
+      self.ui.label_lineEdit.setText ( newName )
+    if newName != oldName :
+      self.param.label = newName
+      self.emit ( QtCore.SIGNAL ( 'changeParamLabel' ), oldName, newName )
   #
   #
   #
   def onEditParamEnabled ( self, value ) : self.param.enabled = self.ui.check_enabled.isChecked ()
   def onEditParamDisplay ( self, value ) : self.param.display = self.ui.check_display.isChecked ()
-  def onEditParamShader ( self, value )  : self.param.shaderParam = self.ui.check_shader.isChecked ()
+  def onEditParamShader ( self, value )  : 
+    #
+    self.param.shaderParam = self.ui.check_shader.isChecked ()
+    self.emit ( QtCore.SIGNAL ( 'changeParamIsShader' ), self.param )
+    
   def onEditParamType ( self, idx ) :
     #
     # !!! UI for param.value and param.default also should be changed
     #
     self.param.type = str ( self.ui.type_comboBox.itemText ( idx ) )
+    self.emit ( QtCore.SIGNAL ( 'changeParamType' ), self.param )
 
-  def onEditParamDetail ( self, idx )   : self.param.detail = str ( self.ui.detail_comboBox.itemText ( idx ) )
-  def onEditParamProvider ( self, idx ) : self.param.provider = str ( self.ui.provider_comboBox.itemText ( idx ) )
-  def onEditParamSubtype ( self, idx )  : self.param.subtype = str ( self.ui.subtype_comboBox.itemText ( idx ) )
-  def onEditParamRange ( self )         : self.param.range = str ( self.ui.range_lineEdit.text () )
-  def onEditParamHelp ( self )          : self.param.help = str ( self.ui.descr_plainTextEdit.toPlainText () )
+  def onEditParamDetail ( self, idx ) :
+    #
+    self.param.detail = str ( self.ui.detail_comboBox.itemText ( idx ) )
+    self.emit ( QtCore.SIGNAL ( 'changeParamDetail' ), self.param )
+    
+  def onEditParamProvider ( self, idx ) : 
+    #
+    self.param.provider = str ( self.ui.provider_comboBox.itemText ( idx ) )
+    self.emit ( QtCore.SIGNAL ( 'changeParamProvider' ), self.param )
+    
+  def onEditParamSubtype ( self, idx ) : 
+    #
+    self.param.subtype = str ( self.ui.subtype_comboBox.itemText ( idx ) )
+    self.emit ( QtCore.SIGNAL ( 'changeParamSubtype' ), self.param )
+    
+  def onEditParamRange ( self ) : 
+    #
+    self.param.range = str ( self.ui.range_lineEdit.text () )
+    self.emit ( QtCore.SIGNAL ( 'changeParamRange' ), self.param )
+    
+  def onEditParamHelp ( self ) : self.param.help = str ( self.ui.descr_plainTextEdit.toPlainText () )

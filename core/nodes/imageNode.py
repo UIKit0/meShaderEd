@@ -1,6 +1,8 @@
-#===============================================================================
-# imageNode.py
-#===============================================================================
+"""
+
+ imageNode.py
+
+"""
 import os, sys
 from PyQt4 import QtCore
 
@@ -35,7 +37,7 @@ class ImageNode ( Node ) :
   def computeNode ( self ) :
     #
     print '>> ImageNode( %s ).computeNode' % self.label
-    # inside param_code, imageName value can be assigned from different
+    # inside control_code, imageName value can be assigned from different
     # input parameters
-    self.execParamCode ()
+    self.execControlCode ()
     return self.imageName

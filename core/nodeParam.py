@@ -67,10 +67,10 @@ class NodeParam ( QtCore.QObject ) :
   #
   # setup
   #
-  def setup ( self, name, label, detail, provider = None ) :
+  def setup ( self, name, label = '', detail = None, provider = None ) :
     #
     self.name = name
-    if label == '' : self.label = name
+    if label == '' or label is None : self.label = name
     else: self.label = label
 
     self.detail = detail
@@ -84,7 +84,7 @@ class NodeParam ( QtCore.QObject ) :
   #
   def copySetup ( self, newParam ) :
     #
-    if DEBUG_MODE : print '>> NodeParam( %s ).copySetup' % self.label
+    #if DEBUG_MODE : print '>> NodeParam( %s ).copySetup' % self.label
     newParam.id = self.id
     newParam.name = self.name
     newParam.label = self.label
@@ -95,6 +95,7 @@ class NodeParam ( QtCore.QObject ) :
     newParam.isRibParam = self.isRibParam
     newParam.display = self.display
     newParam.enabled = self.enabled
+    newParam.removable = self.removable
     newParam.detail = self.detail
     newParam.provider = self.provider
     newParam.subtype = self.subtype
@@ -177,6 +178,47 @@ class NodeParam ( QtCore.QObject ) :
       self.value = value
       self.paramChanged ()
   #
+  # removeItemFromRange
+  #
+  def removeItemFromRange ( self, item_label ) :
+    #
+    newRangeList = []
+    if self.range != '' : # and self.subtype == 'selector':
+      tmp_list = str ( self.range ).split ( ':' )
+      for s in tmp_list :
+        pair = s.split ( '=' )
+        if len ( pair ) > 1 :
+          label = pair [0]
+          value = pair [1]
+        else :
+          label = s
+          value = s
+        #
+        if label != item_label :
+          newRangeList.append ( s )
+      self.range = ( ':' ).join ( newRangeList )  
+  #
+  # renameItemInRange
+  #
+  def renameItemInRange ( self, item_label, newLabel ) :
+    #
+    newRangeList = []
+    if self.range != '' : # and self.subtype == 'selector':
+      tmp_list = str ( self.range ).split ( ':' )
+      for s in tmp_list :
+        pair = s.split ( '=' )
+        if len ( pair ) > 1 :
+          label = pair [0]
+          value = pair [1]
+        else :
+          label = s
+          value = s
+        #
+        if label == item_label :
+          s = s.replace ( label, newLabel, 1 ) # replace only label
+        newRangeList.append ( s )
+      self.range = ( ':' ).join ( newRangeList )    
+  #
   # parseFromXML
   #
   def parseFromXML ( self, xml_param ) :
@@ -227,8 +269,7 @@ class NodeParam ( QtCore.QObject ) :
     help_tag = xml_param.namedItem ( 'help' )
 
     if not help_tag.isNull () :
-      help = help_tag.toElement ().text ()
-      self.help = help
+      self.help = str ( help_tag.toElement ().text () )
   #
   # parseToXML
   #

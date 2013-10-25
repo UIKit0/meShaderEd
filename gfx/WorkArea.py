@@ -178,6 +178,17 @@ class WorkArea ( QtGui.QGraphicsView ) :
         else :
           if DEBUG_MODE : print '!! invalid link ...'
   #
+  # updateBelow
+  #
+  def updateBelow ( self, upperGfxNode, removeLinks = False ) :
+    #
+    if DEBUG_MODE : print '>> WorkArea::updateBelow upperGfxNode.node (%s) children:' % upperGfxNode.node.label
+    for node in upperGfxNode.node.childs :
+      if DEBUG_MODE : print '* %s' % node.label
+      gfxNode = self.getGfxNodesByNode ( node )
+      gfxNode.updateGfxNode ( removeLinks )
+      self.updateBelow ( gfxNode, removeLinks )
+  #
   # selectBelow
   #
   def selectBelow ( self, upperGfxNode ) :
@@ -598,15 +609,15 @@ class WorkArea ( QtGui.QGraphicsView ) :
     self.scene ().removeItem ( gfxLink )
     
     if gfxLink.link is not None :
-      print ">> WorkArea: onRemoveLink (id = %d)" % ( gfxLink.link.id )
+      print "*** (id = %d)" % ( gfxLink.link.id )
       srcConnector = gfxLink.srcConnector
       dstConnector = gfxLink.dstConnector
       self.nodeNet.removeLink ( gfxLink.link )
       if srcConnector is not None :
-        if DEBUG_MODE : print 'srcConnector.parentItem().node.label = %s ' % srcConnector.getNode ().label
+        if DEBUG_MODE : print '*** srcConnector.parentItem().node.label = %s ' % srcConnector.getNode ().label
         #self.emit( QtCore.SIGNAL( 'nodeConnectionChanged' ), srcConnector.parentItem(), srcConnector.param )
       if dstConnector is not None :
-        if DEBUG_MODE : print 'dstConnector.parentItem().node.label = %s ' % dstConnector.getNode ().label
+        if DEBUG_MODE : print '*** dstConnector.parentItem().node.label = %s ' % dstConnector.getNode ().label
         self.emit ( QtCore.SIGNAL ( 'nodeConnectionChanged' ), dstConnector.getGfxNode (), dstConnector.param )
   #
   # removeSelected
@@ -942,3 +953,36 @@ class WorkArea ( QtGui.QGraphicsView ) :
 
     for node in nodes : self.addGfxNode ( node, offsetPos )
     for link in links : self.addGfxLink ( link )
+  #
+  # newNodeNetFromList
+  #
+  def nodeNetFromSelected ( self, nodeNetName, preserveLinks = False ) :
+    #
+    if DEBUG_MODE : print '>> WorkArea.nodeNetFromSelected ( preserveLinks = %s )'  % str ( preserveLinks )
+    dupNodeNet = NodeNetwork ( nodeNetName )
+    for gfxNode in self.selectedNodes :
+      dupNode = gfxNode.node.copy ()
+      dupNodeNet.addNode ( dupNode )
+    for gfxNode in self.selectedNodes :
+      for link in gfxNode.node.getInputLinks () :
+        #link.printInfo ()
+        dupLink = link.copy ()
+        dupDstNode = dupNodeNet.getNodeByID ( gfxNode.node.id )
+        if dupDstNode is not None :
+          dupDstParam = dupDstNode.getInputParamByName ( link.dstParam.name ) 
+          dupLink.setDst ( dupDstNode, dupDstParam )
+          ( srcNode, srcParam ) = dupLink.getSrc ()
+          dupSrcNode = dupNodeNet.getNodeByID ( srcNode.id )
+          if dupSrcNode is not None :
+            # if srcNode is inside dupNodeNet 
+            dupSrcParam = dupSrcNode.getOutputParamByName ( srcParam.name )
+            dupLink.setSrc ( dupSrcNode, dupSrcParam )
+            dupNodeNet.addLink ( dupLink ) 
+          else :
+            # if this is outside links
+            if preserveLinks :
+              dupNodeNet.addLink ( dupLink ) 
+            else :
+              dupLink.setSrc ( None, None )  
+              dupLink.setDst ( None, None )    
+    return dupNodeNet          

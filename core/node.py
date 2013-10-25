@@ -1,11 +1,14 @@
-#===============================================================================
-# node.py
-#===============================================================================
-import os, sys
-from PyQt4 import QtCore
+"""
+ node.py
+
+"""
+import os, sys, copy
+from PyQt4 import QtCore, QtXml
+from PyQt4.QtCore import QDir, QFile, QVariant
 
 from global_vars import app_global_vars, DEBUG_MODE
 from core.node_global_vars import node_global_vars
+from core.meCommon import getParsedLabel, normPath
 #
 # Node
 #
@@ -30,9 +33,13 @@ class Node ( QtCore.QObject ) :
 
     self.master = None
 
-    self.code = None
-    self.param_code = None
-    self.computed_code = None
+    self.code = None            # Node code (RSL, RIB, ... )
+    self.control_code = None    # python code executed before node computation
+    self.computed_code = None   # code collected after compute on all connected nodes
+    self.event_code = {}
+    #self.event_code [ 'ParamLabelRenamed' ] = None
+    #self.event_code [ 'ParamAdded' ] = None
+    #self.event_code [ 'ParamRemoved' ] = None
 
     self.display = True
 
@@ -66,6 +73,7 @@ class Node ( QtCore.QObject ) :
   # __del__
   #
   def __del__ ( self ) :
+    #
     if DEBUG_MODE : print '>> Node( %s ).__del__' % self.label
   #
   # build
@@ -89,6 +97,13 @@ class Node ( QtCore.QObject ) :
     if DEBUG_MODE : print '>> Node( %s ).updateNode' % self.label
     self.emit ( QtCore.SIGNAL ( 'nodeUpdated' ), self )
   #
+  # updateNodeParams
+  #
+  def updateNodeParams ( self ) : 
+    #
+    if DEBUG_MODE : print '>> Node( %s ).updateNodeParams' % self.label
+    self.emit ( QtCore.SIGNAL ( 'nodeParamsUpdated' ), self )
+  #
   # addChild
   #
   def addChild ( self, node ) : self.childs.add ( node )
@@ -99,8 +114,9 @@ class Node ( QtCore.QObject ) :
     #
     if node in self.childs :
       self.childs.remove ( node )
+      if DEBUG_MODE : print '** Node(%s).removeChild %s' % ( self.label, node.label )
     else :
-      if DEBUG_MODE : print '!! Node::removeChild child %s is not in the list' % node.label
+      if DEBUG_MODE : print '!! Node(%s).removeChild child %s is not in the list' % ( self.label, node.label )
   #
   # printInfo
   #
@@ -112,6 +128,7 @@ class Node ( QtCore.QObject ) :
       print '\t* param: %s (%s) linked to ' % ( param.name, param.label )
       self.inputLinks [ param ].printInfo ()
     print '** Node outputLinks:'
+    #print '*****', self.outputLinks
     for param in self.outputLinks.keys () :
       print '\t* param: %s (%s) linked to ' % ( param.name, param.label )
       linklist = self.outputLinks [ param ]
@@ -130,6 +147,9 @@ class Node ( QtCore.QObject ) :
     if param.name in self.getParamsNames () : self.renameParamName ( param, param.name )
     if param.label in self.getParamsLabels () : self.renameParamLabel ( param, param.label )
     self.inputParams.append ( param )
+    if self.event_code :
+      if 'ParamAdded' in self.event_code.keys () :
+        exec ( self.event_code [ 'ParamAdded' ], { 'param' : param, 'self' : self } )
   #
   # addOutputParam
   #
@@ -140,6 +160,9 @@ class Node ( QtCore.QObject ) :
     if param.name in self.getParamsNames () : self.renameParamName ( param, param.name )
     if param.label in self.getParamsLabels () : self.renameParamLabel ( param, param.label )
     self.outputParams.append ( param )
+    if self.event_code :
+      if 'ParamAdded' in self.event_code.keys () :
+        exec ( self.event_code [ 'ParamAdded' ], { 'param' : param, 'self' : self } )
   #
   # addInternal
   #
@@ -173,8 +196,10 @@ class Node ( QtCore.QObject ) :
   #
   def attachOutputParamToLink ( self, param, link ) :
     #
+    #if DEBUG_MODE : print ">> Node::attachOutputParamToLink param = %s" % param.name
     if not param in self.outputLinks.keys () :
       self.outputLinks [ param ] = []
+    if not link in self.outputLinks [ param ] :
     self.outputLinks [ param ].append ( link )
   #
   # detachInputParam
@@ -225,11 +250,11 @@ class Node ( QtCore.QObject ) :
     # returns node linked to input parameter param,
     # skipping all ConnectorNode
     #
-    if DEBUG_MODE : print '* getLinkedSrcNode node = %s param = %s' % ( self.label, param.label )
+    #if DEBUG_MODE : print '* getLinkedSrcNode node = %s param = %s' % ( self.label, param.label )
     srcNode = None
     srcParam = None
     if self.isInputParamLinked ( param ) :
-      if DEBUG_MODE : print '* isInputParamLinked'
+      #if DEBUG_MODE : print '* isInputParamLinked'
       link = self.inputLinks [ param ]
       if link.srcNode.type == 'connector' :
         if len ( link.srcNode.inputParams ) :
@@ -241,6 +266,37 @@ class Node ( QtCore.QObject ) :
         srcNode = link.srcNode
         srcParam = link.srcParam
     return ( srcNode, srcParam )
+  #
+  # getLinkedDstNodes
+  #
+  def getLinkedDstNodes ( self, param, dstConnections = [] ) :
+    # returns nodes linked to output parameter param,
+    # skipping all ConnectorNode
+    #
+    #if DEBUG_MODE : print '*** getLinkedDstNodese node = %s param = %s' % ( self.label, param.label )
+    dstNode = None
+    dstParam = None
+    # dstConnections = []
+    if self.isOutputParamLinked ( param ) :
+      #if DEBUG_MODE : print '* isOutputParamLinked'
+      dstLinks = self.getOutputLinks ( param )
+      for link in dstLinks :
+        if link.dstNode.type == 'connector' :
+          #if DEBUG_MODE : print '* link.dstNode.type == connector'
+          connectorOutputParams = link.dstNode.outputParams
+          if len ( connectorOutputParams ) > 0 :
+            for connectorOutputParam in connectorOutputParams :
+              connectorDstConnections = []
+              retList = link.dstNode.getLinkedDstNodes ( connectorOutputParam, connectorDstConnections )
+              for ( retNode, retParam ) in retList : 
+                dstConnections.append ( ( retNode, retParam ) )
+          else :
+            if DEBUG_MODE : print '* no outputParams at connector %s' % ( link.dstNode.label )
+        else :
+          dstNode = link.dstNode
+          dstParam = link.dstParam
+          dstConnections.append ( ( dstNode, dstParam ) )
+    return dstConnections
   #
   # removeParam
   #
@@ -254,6 +310,9 @@ class Node ( QtCore.QObject ) :
     else :
       removedLinks = self.detachOutputParam ( param )
       self.outputParams.remove ( param )
+    if self.event_code :
+      if 'ParamRemoved' in self.event_code.keys () :
+        exec ( self.event_code [ 'ParamRemoved' ], { 'param' : param, 'self' : self } )
     return removedLinks
   #
   # getInputParamByName
@@ -280,14 +339,16 @@ class Node ( QtCore.QObject ) :
   #
   # getInputParamValueByName
   #
-  def getInputParamValueByName ( self, name ) :
+  def getInputParamValueByName ( self, name, CodeOnly = False ) :
     #
     result = None
     srcNode = srcParam = None
     param = self.getInputParamByName ( name )
     ( srcNode, srcParam ) = self.getLinkedSrcNode ( param )
     if srcNode is not None :
-      srcNode.computeNode ()
+      # computation may be skipped if we need only value
+      #if compute :
+      srcNode.computeNode ( CodeOnly )
       if self.computed_code is not None :
         self.computed_code += srcNode.computed_code
       result = srcNode.parseGlobalVars ( srcParam.getValueToStr () )
@@ -333,10 +394,14 @@ class Node ( QtCore.QObject ) :
   #
   # getOutputLinks
   #
-  def getOutputLinks ( self ) :
+  def getOutputLinks ( self, param = None ) :
+    #
     outputLinks = []
     for link_list in self.outputLinks.values () :
       for link in link_list :
+        if param is not None :
+          if link.srcParam != param :
+            continue
         outputLinks.append ( link )
     return outputLinks
   #
@@ -372,10 +437,17 @@ class Node ( QtCore.QObject ) :
   #
   # renameParamLabel
   #
-  def renameParamLabel ( self, param, newName ) :
+  def renameParamLabel ( self, param, newLabel ) :
+    #
+    oldLabel = param.label
+    if DEBUG_MODE : print ">> Node( %s ).renameParamLabel  oldLabel = %s newLabel = %s" % ( self.label, oldLabel, newLabel )
+    if newLabel == '' : newLabel = self.param.name
     # assign new unique label to param
     from meCommon import getUniqueName
-    param.label = getUniqueName ( newName, self.getParamsLabels() )
+    param.label = getUniqueName ( newLabel, self.getParamsLabels () )
+    if self.event_code :
+      if 'ParamLabelRenamed' in self.event_code.keys () :
+        exec ( self.event_code [ 'ParamLabelRenamed' ], { 'param' : param, 'self' : self, 'oldLabel' : oldLabel } )
     return param.label
   #
   # onParamChanged
@@ -394,18 +466,25 @@ class Node ( QtCore.QObject ) :
   #
   def getName ( self ) : return self.label
   #
+  # getNodenetName
+  #
+  def getNodenetName ( self ) : return self.nodenet.getName ()
+  #
   # getInstanceName
   #
-  def getInstanceName ( self ) : return self.label
+  def getInstanceName ( self ) : return  getParsedLabel ( self.label )
   #
   # getParamName
   #
   def getParamName ( self, param ) :
     #
-    result = param.name
-    if not ( param.provider in [ 'primitive', 'attribute' ] or param.isRibParam ) :
-      result = self.getInstanceName () + '_' + param.name
-    return result
+    if param.isRibParam  or param.provider == 'attribute':
+      paramName = param.name
+    elif param.provider == 'primitive' : 
+      paramName = getParsedLabel ( param.label )
+    else :
+      paramName = self.getInstanceName () + '_' + getParsedLabel ( param.label )
+    return paramName
   #
   # getParamDeclaration
   #
@@ -520,13 +599,36 @@ class Node ( QtCore.QObject ) :
       y = float ( offset_tag.attributes ().namedItem ( 'y' ).nodeValue () )
       self.offset = ( x, y )
 
-    param_code_tag = xml_node.namedItem ( 'param_code' )
-    if not param_code_tag.isNull() :
-      self.param_code = str ( param_code_tag.toElement ().text () )
+    control_code_tag = xml_node.namedItem ( 'control_code' )
+    if not control_code_tag.isNull () :
+      code_str = str ( control_code_tag.toElement ().text () )
+      if code_str.lstrip () == '' : code_str = None
+      self.control_code = code_str
+    else :
+      # for temp. backward compatibility
+      control_code_tag = xml_node.namedItem ( 'param_code' )
+      if not control_code_tag.isNull() :
+        code_str = str ( control_code_tag.toElement ().text () )
+        if code_str.lstrip () == '' : code_str = None
+        self.control_code = code_str
 
     code_tag = xml_node.namedItem ( 'code' )
     if not code_tag.isNull () :
-      self.code = str ( code_tag.toElement ().text () )
+      code_str = str ( code_tag.toElement ().text () )
+      if code_str.lstrip () == '' : code_str = None
+      self.code = code_str
+    event_code_tag = xml_node.namedItem ( 'event_code' )
+    if not event_code_tag.isNull () :
+      xml_handlerList = event_code_tag.toElement ().elementsByTagName ( 'handler' )
+      for i in range ( 0, xml_handlerList.length () ) :
+        handler_tag = xml_handlerList.item ( i )
+        handler_name = str ( handler_tag.attributes ().namedItem ( 'name' ).nodeValue () )
+        code_str = str ( handler_tag.toElement ().text () ).lstrip ()
+        if code_str == '' : code_str = None
+        self.event_code [ handler_name ] = code_str
+        #print '** handler = %s' % handler_name
+        #print '** handler code :'
+        #print self.event_code [ handler_name ] 
   #
   # parseToXML
   #
@@ -576,11 +678,11 @@ class Node ( QtCore.QObject ) :
       include_tag.appendChild ( inc_tag )
     xml_node.appendChild ( include_tag )
 
-    if self.param_code != None :
-      param_code_tag = dom.createElement ( 'param_code' )
-      param_code_data = dom.createCDATASection ( self.param_code )
-      param_code_tag.appendChild ( param_code_data )
-      xml_node.appendChild ( param_code_tag )
+    if self.control_code != None :
+      control_code_tag = dom.createElement ( 'control_code' )
+      control_code_data = dom.createCDATASection ( self.control_code )
+      control_code_tag.appendChild ( control_code_data )
+      xml_node.appendChild ( control_code_tag )
 
     if self.code != None :
       code_tag = dom.createElement ( 'code' )
@@ -588,6 +690,17 @@ class Node ( QtCore.QObject ) :
       code_tag.appendChild ( code_data )
       xml_node.appendChild ( code_tag )
 
+    if self.event_code :
+      event_code_tag = dom.createElement ( 'event_code' )
+      print '*** write event_code'
+      for key in self.event_code.keys () :
+        print '*** write handler "%s"' % key
+        handler_tag = dom.createElement( 'handler' )
+        handler_tag.setAttribute ( 'name', key )
+        event_code_tag.appendChild ( handler_tag )
+        handler_data = dom.createCDATASection ( self.event_code [ key ] )
+        handler_tag.appendChild ( handler_data )
+      xml_node.appendChild ( event_code_tag )
     if self.offset != None :
       ( x, y ) = self.offset
       offset_tag = dom.createElement ( 'offset' )
@@ -597,38 +710,32 @@ class Node ( QtCore.QObject ) :
 
     return xml_node
   #
+  # getHeader
+  #
+  def getHeader ( self ) : assert 0, 'getHeader needs to be implemented!'
+  #
+  # getComputedCode
+    #
+  def getComputedCode ( self, CodeOnly = False ) : assert 0, 'getComputedCode needs to be implemented!'
+
+  #
   # computeNode
   #
-  def computeNode ( self ) :
+  def computeNode ( self, CodeOnly = False ) : assert 0, 'computeNode needs to be implemented!'
     #
-    if DEBUG_MODE : print '>> Node (%s).computeNode' % self.label
-    self.execParamCode ()
+  # execControlCode
   #
-  # execParamCode
-  #
-  def execParamCode ( self ) :
+  def execControlCode ( self ) :
     #
-    if self.param_code != None :
-      param_code = self.param_code.lstrip ()
-      if param_code != '' :
-        exec param_code
-  #
-  # getComputedParamList
-  #
-  def getComputedParamList ( self ) :
-    #print '-> getComputedParamList'
-
-    param_list = self.computedInputParams
-    # rslHeader += self.parseGlobalVars ( self.computedOutputParams )
-    # output parameters are stored in set to prevent duplication
-    for out_param in set ( self.computedOutputParams ) :
-      param_list += out_param
-    return param_list
+    if self.control_code != None :
+      control_code = self.control_code.lstrip ()
+      if control_code != '' :
+        exec control_code
   #
   # parseGlobalVars
   #
   def parseGlobalVars ( self, parsedStr ) :
-    #print '-> parseGlobalVars in %s' % parsedStr
+    #
     resultStr = ''
     parserStart = 0
     parserPos = 0
@@ -654,7 +761,9 @@ class Node ( QtCore.QObject ) :
             if   global_var_name == 'INSTANCENAME' : resultStr += self.getInstanceName ()
             elif global_var_name == 'NODELABEL' : resultStr += self.getLabel ()
             elif global_var_name == 'NODENAME' : resultStr += self.getName ()
-            elif global_var_name == 'PARAMS' : resultStr += self.getComputedParamList ()
+            elif global_var_name == 'PARAMS' : resultStr += self.getComputedInputParams () + self.getComputedOutputParams ()
+            elif global_var_name == 'NODENETNAME' : resultStr += self.getNodenetName ()
+            elif global_var_name == 'OUTPUTNAME' : resultStr += normPath ( os.path.join ( app_global_vars [ 'TempPath' ], self.getNodenetName () + '_' + self.getLabel () ) )
         else :
           # keep $ sign for otheer, non ${...} cases
           resultStr += '$'
@@ -695,7 +804,8 @@ class Node ( QtCore.QObject ) :
 
     import copy
     newNode.code       = copy.copy ( self.code )
-    newNode.param_code = copy.copy ( self.param_code )
+    newNode.control_code = copy.copy ( self.control_code )
+    newNode.event_code   = copy.copy ( self.event_code )
     #self.computed_code = None
 
     newNode.internals = copy.copy ( self.internals )
@@ -704,7 +814,8 @@ class Node ( QtCore.QObject ) :
     newNode.inputLinks = {}
     newNode.outputLinks = {}
 
-    newNode.childs = set ()
+    #newNode.childs = set ()
+    print '***newNode.childs: ', newNode.childs
     #newNode.childs = copy.copy ( self.childs )
 
     newNode.inputParams = []
@@ -714,6 +825,40 @@ class Node ( QtCore.QObject ) :
     for param in self.outputParams : newNode.outputParams.append ( param.copy () )
 
     return newNode
+#
+  # save Node to .xml document
+  #
+  def save ( self ) :
+    #
+    result = False
+    dom = QtXml.QDomDocument ( self.name )
+    xml_code = self.parseToXML ( dom )
+    dom.appendChild ( xml_code )
+    file = QFile ( self.master )
+    if file.open ( QtCore.QIODevice.WriteOnly ) :
+      if file.write ( dom.toByteArray () ) != -1 :
+        result = True
+    file.close()
+    return result
+  #
+  # getChildrenSet
+  #
+  def getChildrenSet ( self, children_set = set () ) :
+    #
+    for node in self.childs :
+      children_set = node.getChildrenSet ( children_set )
+      children_set.add ( node )
+    return children_set  
+  #
+  # getChildrenList
+  #
+  def getChildrenList ( self, children_list = [] ) :
+    #
+    for node in self.childs :
+      children_list = node.getChildrenList ( children_list )
+      if node not in children_list :
+        children_list.append ( node )
+    return children_list  
 #
 # createParamFromXml
 #

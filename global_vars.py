@@ -23,6 +23,7 @@ app_global_vars = {
   ,'TextureSearchPath':''
   ,'ShaderSearchPath':''
   ,'ArchiveSearchPath':''
+  ,'RendererPreset':''
   ,'Renderer':''
   ,'RendererFlags':''
   ,'ShaderCompiler':''
@@ -84,6 +85,7 @@ VALID_PARAM_TYPES = [ 'float',
                       
 VALID_RIB_NODE_TYPES = [ 'rib', 'rib_code' ]
 VALID_RSL_NODE_TYPES = [ 'rsl_code', 'surface', 'displacement', 'light', 'volume' ]
+VALID_RSL_SHADER_TYPES = [ 'surface', 'displacement', 'light', 'volume' ]
 
 VALID_RSL_PARAM_TYPES = [ 'float', 'color', 'point', 'normal', 'vector', 'matrix', 'string', 'shader' ]
 

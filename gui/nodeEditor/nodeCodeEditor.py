@@ -15,7 +15,7 @@ from core.meCommon import *
 from global_vars import app_global_vars
 
 import gui.ui_settings as UI
-from gui.codeSyntaxHighlighter import CodeSyntaxHighlighter
+from codeSyntaxHighlighter import CodeSyntaxHighlighter
 
 from ui_nodeCodeEditor import Ui_NodeCodeEditor
 #
@@ -27,7 +27,7 @@ class NodeCodeEditor ( QtGui.QWidget ):
   #
   def __init__ ( self, parent, editNodeCode = None ) :
     #
-    QtGui.QDialog.__init__ ( self )
+    QtGui.QWidget.__init__ ( self, parent )
     
     self.editNodeCode = editNodeCode
      
@@ -44,25 +44,28 @@ class NodeCodeEditor ( QtGui.QWidget ):
   #
   # setNodeCode
   #
-  def setNodeCode ( self, editNodeCode, mode = 'SL' ) :
+  def setNodeCode ( self, editNodeCode, mode = 'SL', readOnly = False ) :
     #
     self.editNodeCode = editNodeCode
     
-    doc = QtGui.QTextDocument ()
-    
-    font = QtGui.QFont( 'Monospace' )
-    font.setFixedPitch ( True )
-    font.setPointSize ( UI.FONT_HEIGHT )
-
-    codeSyntax = CodeSyntaxHighlighter ( doc, mode )
-    
-    self.ui.textEdit.setDocument ( doc )  
-    self.ui.textEdit.setTabStopWidth ( UI.TAB_SIZE )
-    self.ui.textEdit.setCurrentFont ( font )
-    self.ui.textEdit.setLineWrapMode ( QtGui.QTextEdit.NoWrap )
-
-    code = self.editNodeCode
-    if self.editNodeCode is None : code = ''
+    if self.editNodeCode is not None : 
+      code = self.editNodeCode
+      
+      doc = QtGui.QTextDocument ()
+      
+      font = QtGui.QFont( 'Monospace' )
+      font.setFixedPitch ( True )
+      font.setPointSize ( UI.FONT_HEIGHT )
+  
+      codeSyntax = CodeSyntaxHighlighter ( doc, mode )
+      
+      self.ui.textEdit.setDocument ( doc )  
+      self.ui.textEdit.setTabStopWidth ( UI.TAB_SIZE )
+      self.ui.textEdit.setFont ( font )
+      self.ui.textEdit.setLineWrapMode ( QtGui.QTextEdit.NoWrap )
+      self.ui.textEdit.setReadOnly ( readOnly )
+    else :
+      code = ''
     self.ui.textEdit.setPlainText ( code )
         
         

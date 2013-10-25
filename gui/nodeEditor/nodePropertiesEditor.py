@@ -1,13 +1,13 @@
-#===============================================================================
-# nodeEditor.py.py
-#
-# ver. 1.0.0
-# Author: Yuri Meshalkin (aka mesh) (yuri.meshalkin@gmail.com)
-#
-# Dialog for managing node
-#
-#===============================================================================
+"""
 
+ nodePropertiesEditor.py.py
+
+ ver. 1.0.0
+ Author: Yuri Meshalkin (aka mesh) (yuri.meshalkin@gmail.com)
+
+ Dialog for managing node properties
+
+"""
 import os, sys
 from PyQt4 import QtCore, QtGui
 
@@ -18,17 +18,17 @@ import gui.ui_settings as UI
 
 from core.node import Node
 
-from ui_nodeEditor import Ui_NodeEditor
+from ui_nodePropertiesEditor import Ui_NodePropertiesEditor
 #
 # NodeEditor
 #
-class NodeEditor ( QtGui.QWidget ) :
+class NodePropertiesEditor ( QtGui.QWidget ) :
   #
   # __init__
   #
   def __init__ ( self, parent, editNode = None ) :
     #
-    QtGui.QDialog.__init__ ( self )
+    QtGui.QWidget.__init__ ( self, parent )
 
     self.editNode = editNode
 
@@ -40,7 +40,7 @@ class NodeEditor ( QtGui.QWidget ) :
   #
   def buildGui ( self ) :
     # build the gui created with QtDesigner
-    self.ui = Ui_NodeEditor ()
+    self.ui = Ui_NodePropertiesEditor ()
     self.ui.setupUi ( self )
   #
   # setNode
@@ -149,7 +149,19 @@ class NodeEditor ( QtGui.QWidget ) :
   #
   #
   def onEditNodeStrAttrName ( self ) : self.editNode.name = str ( self.ui.name_lineEdit.text () )
-  def onEditNodeStrAttrLabel ( self ) : self.editNode.label = str ( self.ui.label_lineEdit.text () )
+  def onEditNodeStrAttrLabel ( self ) : 
+    #
+    oldLabel = self.editNode.label
+    newLabel = str ( self.ui.label_lineEdit.text () ).strip ()
+    if newLabel == '' :
+      self.disconnect ( self.ui.label_lineEdit, QtCore.SIGNAL ( 'editingFinished()' ), self.onEditNodeStrAttrLabel )
+      newLabel = oldLabel
+      self.ui.label_lineEdit.setText ( newLabel )
+      self.connect ( self.ui.label_lineEdit, QtCore.SIGNAL ( 'editingFinished()' ), self.onEditNodeStrAttrLabel )
+    if newLabel != oldLabel :
+      self.editNode.label = newLabel
+      self.emit ( QtCore.SIGNAL ( 'changeNodeLabel' ), oldLabel, newLabel )
+      
   def onEditNodeStrAttrMaster ( self ) : self.editNode.master = str ( self.ui.master_lineEdit.text () )
   def onEditNodeStrAttrAuthor ( self ) : self.editNode.author = str ( self.ui.author_lineEdit.text () )
   def onEditNodeStrAttrIcon ( self ) : self.editNode.icon = str ( self.ui.icon_lineEdit.text () )

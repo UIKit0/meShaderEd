@@ -1,16 +1,13 @@
-#===============================================================================
-# StringWidget.py
-#
-# 
-#
-#===============================================================================
+"""
 
+ StringWidget.py
+
+"""
 from PyQt4 import QtGui, QtCore
 
 from global_vars import app_global_vars, DEBUG_MODE
 import gui.ui_settings as UI 
 from paramWidget import ParamWidget 
-
 #
 # StringWidget
 #
@@ -39,6 +36,9 @@ class Ui_StringWidget_field ( object ) :
   #
   def setupUi ( self, StringWidget ) :
     #
+    hl = QtGui.QHBoxLayout ()
+    hl.setStretch ( 1, 1 )
+    
     self.widget = StringWidget
     
     self.stringEdit = QtGui.QLineEdit ( StringWidget )
@@ -46,8 +46,8 @@ class Ui_StringWidget_field ( object ) :
     self.stringEdit.setMinimumSize ( QtCore.QSize ( UI.LABEL_WIDTH, UI.HEIGHT ) ) # UI.EDIT_WIDTH
     self.stringEdit.setMaximumSize ( QtCore.QSize ( UI.MAX, UI.HEIGHT ) )
     
-    self.widget.hl.addWidget ( self.stringEdit )
-    self.widget.hl.setStretch ( 1, 1 )
+    hl.addWidget ( self.stringEdit )
+    self.widget.param_vl.addLayout ( hl )
     
     QtCore.QMetaObject.connectSlotsByName ( StringWidget )
     self.connectSignals ( StringWidget )
@@ -73,7 +73,8 @@ class Ui_StringWidget_field ( object ) :
   #
   # updateGui
   #
-  def updateGui ( self, value ) : 
+  def updateGui ( self, value ) :
+    # 
     self.stringEdit.setText ( value )
 #
 # Ui_StringWidget_selector
@@ -84,6 +85,7 @@ class Ui_StringWidget_selector ( object ) :
   #
   def setupUi ( self, StringWidget ) :
     #
+    hl = QtGui.QHBoxLayout ()
     self.widget = StringWidget
     
     self.selector = QtGui.QComboBox ( StringWidget )
@@ -99,8 +101,9 @@ class Ui_StringWidget_selector ( object ) :
     
     spacer = QtGui.QSpacerItem ( UI.HEIGHT, UI.HEIGHT, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum )
     
-    self.widget.hl.addWidget ( self.selector )
-    self.widget.hl.addItem ( spacer )
+    hl.addWidget ( self.selector )
+    hl.addItem ( spacer )
+    self.widget.param_vl.addLayout ( hl )
     
     QtCore.QMetaObject.connectSlotsByName ( StringWidget )
     self.connectSignals ( StringWidget )
@@ -147,6 +150,9 @@ class Ui_StringWidget_file ( object ) :
   #
   def setupUi ( self, StringWidget ) :
     #
+    hl = QtGui.QHBoxLayout ()
+    hl.setStretch ( 1, 1 )
+    
     self.widget = StringWidget
     
     self.stringEdit = QtGui.QLineEdit ( StringWidget )
@@ -159,9 +165,10 @@ class Ui_StringWidget_file ( object ) :
     self.btnBrowseDir.setMinimumSize ( QtCore.QSize ( UI.BROWSE_WIDTH, UI.HEIGHT ) )
     self.btnBrowseDir.setMaximumSize ( QtCore.QSize ( UI.BROWSE_WIDTH, UI.HEIGHT ) )
     
-    self.widget.hl.addWidget ( self.stringEdit )
-    self.widget.hl.addWidget ( self.btnBrowseDir )
-    self.widget.hl.setStretch ( 1, 1 )
+    hl.addWidget ( self.stringEdit )
+    hl.addWidget ( self.btnBrowseDir )
+    self.widget.param_vl.addLayout ( hl )
+    
     
     #QtCore.QMetaObject.connectSlotsByName ( StringWidget )
    

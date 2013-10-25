@@ -1,6 +1,7 @@
-#===============================================================================
-# nodeNetwork.py
-#===============================================================================
+"""
+ nodeNetwork.py
+
+"""
 import os, sys
 
 from PyQt4 import QtCore, QtXml
@@ -51,6 +52,10 @@ class NodeNetwork ( QtCore.QObject ) :
   #
   def __del__ ( self ) :
     if DEBUG_MODE : print '>> NodeNetwork( %s ).__del__ ' % self.name
+  #
+  # getName
+  #
+  def getName ( self ) : return self.name
   #
   # copy
   #
@@ -193,6 +198,8 @@ class NodeNetwork ( QtCore.QObject ) :
       linkPopped = self.links.pop ( link.id )
       dstNode = linkPopped.dstNode
       srcNode = linkPopped.srcNode
+      # detach nodes from link
+      linkPopped.remove ()
       # check if we can remove a child from destination node
       sourceNodeReferenceCount = 0
       for inputLink in dstNode.inputLinks.values () :
@@ -201,8 +208,7 @@ class NodeNetwork ( QtCore.QObject ) :
       if sourceNodeReferenceCount == 0 :
         if srcNode in dstNode.childs :
           dstNode.removeChild ( srcNode )
-      # detach nodes from link
-      linkPopped.remove ()
+      
   #
   # hasThisLink
   #
@@ -352,7 +358,8 @@ class NodeNetwork ( QtCore.QObject ) :
           print '!! unknown XML document format'
         self.correct_id ( nodes, links )
     file.close()
-    if DEBUG_MODE : print '>> NodeNetwork( %s ).open node_id = %d link_id = %d' % ( self.name, self.node_id, self.link_id )
+    #if DEBUG_MODE : print '>> NodeNetwork( %s ).open node_id = %d link_id = %d' % ( self.name, self.node_id, self.link_id )
+    #if DEBUG_MODE : self.printInfo ()
     return ( nodes, links )
   #
   # insert NodeNetwork from .xml document
@@ -380,7 +387,8 @@ class NodeNetwork ( QtCore.QObject ) :
         else :
           print '!! unknown XML document format'
     file.close()
-    if DEBUG_MODE : print '>> NodeNetwork( %s ).insert node_id = %d link_id = %d' % ( self.name, self.node_id, self.link_id )
+    #if DEBUG_MODE : print '>> NodeNetwork( %s ).insert node_id = %d link_id = %d' % ( self.name, self.node_id, self.link_id )
+    #if DEBUG_MODE : self.printInfo ()
     return ( nodes, links )
   #
   # correct currnet NodeNetwork node_id and link_id

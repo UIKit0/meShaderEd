@@ -1,16 +1,19 @@
-#===============================================================================
-# rslNode.py
-#
-#
-#
-#===============================================================================
+"""
+
+ rslNode.py
+ 
+ ver. 1.0.0
+ Author: Yuri Meshalkin (aka mesh) (yuri.meshalkin@gmail.com)
+
+"""
 import os, sys
 from PyQt4 import QtCore
 
 from core.node import Node
 from core.nodeParam import NodeParam
+from core.meCommon import *
 
-from global_vars import app_global_vars, DEBUG_MODE
+from global_vars import app_global_vars, DEBUG_MODE, VALID_RSL_SHADER_TYPES
 from core.node_global_vars import node_global_vars
 #
 # RSLNode
@@ -34,87 +37,79 @@ class RSLNode ( Node ) :
   #
   # collectComputed
   #
-  def collectComputed ( self, shaderCode, visitedNodes ) :
-    #print '>> Node (%s).collectComputed' % self.label
-    #
-    self.computedInputParams = ''
-    self.computedLocals = ''
-    self.computedLocalParams = ''
-    self.computedIncludes = []
-    self.computedOutputParams = []
-
-    #self.computedCode = ''
+  def collectComputed ( self, computedCode, visitedNodes, CodeOnly = False ) :
+    #    
+    self.computedInputParamsList = []
+    self.computedOutputParamsList = []
+    self.computedLocalParamsList = []    
+    self.computedIncludesList = []
 
     for param in self.inputParams :
       ( srcNode, srcParam ) = self.getLinkedSrcNode ( param )
       if srcNode is not None :
         if not srcNode in visitedNodes :
-          shaderCode = srcNode.collectComputed ( shaderCode, visitedNodes )
+          computedCode = srcNode.collectComputed ( computedCode, visitedNodes, CodeOnly )
 
-          self.computedInputParams = srcNode.computedInputParams + self.computedInputParams
-          self.computedLocalParams = srcNode.computedLocalParams + self.computedLocalParams
-
-          for out_param in srcNode.computedOutputParams :
-            self.computedOutputParams.append ( out_param )
-
-          for inc_name in srcNode.computedIncludes :
-            self.computedIncludes.append ( inc_name )
-
+          self.computedInputParamsList = srcNode.computedInputParamsList + self.computedInputParamsList
+          self.computedLocalParamsList = srcNode.computedLocalParamsList + self.computedLocalParamsList
+          self.computedOutputParamsList += srcNode.computedOutputParamsList
+          self.computedIncludesList += srcNode.computedIncludesList
       else :
-        declare = self.getParamDeclaration ( param )
-        #print '>> Node (%s).collectComputed: local param %s' % ( self.label, declare )
         if param.shaderParam :
-          self.computedInputParams += declare
+          self.computedInputParamsList.append ( ( param, self ) ) # += declare
         else :
-          self.computedLocalParams += declare
+          self.computedLocalParamsList.append ( ( param, self ) ) # += declare
 
     for param in self.outputParams :
       if not param.type in ['rib', 'surface', 'displacement', 'light', 'volume'] :
-        declare = self.getParamDeclaration ( param )
-        if param.provider == 'primitive' :
-          self.computedOutputParams.append ( 'output ' + declare )
+        if param.provider == 'primitive' or param.shaderParam :
+          self.computedOutputParamsList.append ( ( param, self ) ) # += ( 'output ' + declare )
         else :
-          self.computedLocalParams += declare
+          self.computedLocalParamsList.append ( ( param, self ) ) # += declare
 
     for inc_name in self.includes :
-      self.computedIncludes.append ( inc_name )
-    #print self.includes
+      self.computedIncludesList.append ( inc_name )
 
     visitedNodes.add ( self )
 
-    node_code = str ( self.parseLocalVars ( self.code ) )
-
-    if self.type in [ 'surface', 'displacement', 'light', 'volume' ] :
-      # find begin block position '{' for inserting computed code
-      block_begin_pos = 0
-      parserStart = 0
-      parserPos = 0
-
-      while parserPos != -1 :
-        parserPos = node_code.find ( '{', parserStart )
-        if parserPos != -1 :
-          # skip global vars case defined as ${VARNAME}
-          if node_code[ parserPos-1:parserPos ] != '$' :
-            block_begin_pos = parserPos + 1
-            break
-          parserStart = parserPos + 1
-
-      #print '> Code insert position = %d' % block_begin_pos
-      #print '> insert code at %s' % node_code[ block_begin_pos: ]
-
-      begin_code = node_code [ 0:block_begin_pos ]
-      end_code = node_code[ block_begin_pos + 1 : ]
-
-      shaderCode = begin_code + '\n' + self.computedLocalParams + shaderCode + end_code
-    else :
-      shaderCode += node_code
-
+    if self.code is not None :
+      node_code = str ( self.parseLocalVars ( self.code ) )
+  
+      if self.type in [ 'surface', 'displacement', 'light', 'volume' ] :
+        # find begin block position '{' for inserting computed code
+        block_begin_pos = 0
+        parserStart = 0
+        parserPos = 0
+  
+        while parserPos != -1 :
+          parserPos = node_code.find ( '{', parserStart )
+          if parserPos != -1 :
+            # skip global vars case defined as ${VARNAME}
+            if node_code[ parserPos-1:parserPos ] != '$' :
+              block_begin_pos = parserPos + 1
+              break
+            parserStart = parserPos + 1
+  
+        #print '> Code insert position = %d' % block_begin_pos
+        #print '> insert code at %s' % node_code[ block_begin_pos: ]
+  
+        begin_code = node_code [ 0:block_begin_pos ]
+        end_code = node_code[ block_begin_pos + 1 : ]
+  
+        shaderCode = self.getHeader () 
+        shaderCode += begin_code + '\n' 
+        shaderCode += self.getComputedLocals ()
+        shaderCode += computedCode
+        shaderCode += end_code
+      else :
+        shaderCode = computedCode + self.getHeader () + node_code      
+        
     return shaderCode
   #
   # RSL specific parser
   #
   def parseLocalVars ( self, parsedStr ) :
-    #print '-> parseLocalVars in %s' % parsedStr
+    #
     resultStr = ''
     parserStart = 0
     parserPos = 0
@@ -170,61 +165,83 @@ class RSLNode ( Node ) :
 
     return resultStr
   #
-  # computeNode
+  # getComputedInputParams
   #
-  def computeNode ( self ) :
-    print '>> RSLNode (%s).computeNode' % self.label
+  def getComputedInputParams ( self ) :
     #
-    self.computed_code = ''
-    self.execParamCode ()
+    params_str = ''
+    for ( param, node ) in self.computedInputParamsList :
+      params_str += node.getParamDeclaration ( param )
+    return params_str
+  #
+  # getComputedOutputParams
+  #
+  def getComputedOutputParams ( self ) :
+    #
+    params_str = ''
+    for ( param, node ) in self.computedOutputParamsList :
+      params_str += 'output ' + node.getParamDeclaration ( param )
+    return params_str
+  #
+  # getComputedLocals
+  #
+  def getComputedLocals ( self ) :
+    #
+    params_str = ''
+    for ( param, node ) in self.computedLocalParamsList :
+      params_str += node.getParamDeclaration ( param )
+    return params_str
+  #
+  # getHeader
+  #
+  def getHeader ( self ) :
+    #
+    if self.type in VALID_RSL_SHADER_TYPES :     
+      rslHeader =  '/*\n'
+      rslHeader += ' * %s\n' % ( self.getInstanceName () + '.sl' )
+      rslHeader += ' * Generated by meShaderEd ver.${version}\n' 
+      rslHeader += ' */\n\n'
+      # includes are stored in set to prevent duplication
+      for include in set ( self.computedIncludesList ) :
+        rslHeader += '#include \"' + include + '\"\n'
+    else :
+      rslHeader = '\n'
+      rslHeader +=  '/*\n'
+      rslHeader += ' * RSL code node: %s (%s)\n' % ( self.label,  self.name )
+      rslHeader += ' */\n' 
+    
+    return rslHeader
+  #
+  # getComputedCode
+  #
+  def getComputedCode ( self, CodeOnly = False ) :
+    #
+    computedCode = ''
+    
+    self.execControlCode ()
 
-    visitedNodes = set ()
-    shaderCode = ''
-    shaderCode = self.collectComputed ( shaderCode, visitedNodes )
+    self.visitedNodes = set ()
 
-    #for node in self.childs :
-    #  print '=> %s' % node.label
-
-    rslHeader = '/* Generated by meShaderEd */\n\n'
-
-    self.shaderName = app_global_vars [ 'ProjectSources' ] + '/' + self.getInstanceName() + '.sl'
-    #print '>> RSLNode save file %s' % self.shaderName
+    computedCode = self.collectComputed ( computedCode, self.visitedNodes, CodeOnly )
+    computedCode = self.parseGlobalVars ( computedCode )
+    
+    return computedCode     
+  #
+  # writeShader
+  #
+  def writeShader ( self, shaderCode, shaderName ) :
+    #
+    self.shaderName = normPath ( shaderName )
     f = open ( self.shaderName, 'w+t' )
-
-    # includes are stored in set to prevent duplication
-    for include in set ( self.computedIncludes ) :
-      rslHeader += '#include \"' + include + '\"\n'
-
-    """
-    if self.type == 'surface' :
-      rslHeader += '#define SURFACE_SHADER %s\n' % self.getInstanceName()
-      rslHeader += 'surface %s ' % self.getInstanceName()
-    elif self.type == 'displacement' :
-      rslHeader += '#define DISPLACEMENT_SHADER %s\n' % self.getInstanceName()
-      rslHeader += 'displacement %s ' % self.getInstanceName()
-
-    rslHeader += '(\n'
-
-    rslHeader += self.parseGlobalVars ( self.computedInputParams )
-    #rslHeader += self.parseGlobalVars ( self.computedOutputParams )
-    # output parameters are stored in set to prevent duplication
-    for out_param in set( self.computedOutputParams ) :
-      rslHeader += out_param
-
-    rslHeader += ')\n'
-    rslHeader += '{\n'
-    rslHeader += self.parseGlobalVars ( self.computedLocalParams )
-    """
-
-    rslCode = self.parseGlobalVars ( shaderCode )
-
-    #rslCode += '\n}\n'
-
-    f.write ( rslHeader + rslCode )
+    f.write ( shaderCode )
     f.close ()
-
+  #
+  # compileShader
+  #
+  def compileShader ( self, compileDir = '' ) :
+    #
     from meShaderEd import app_renderer
-
+  
     compiler =  app_global_vars [ 'ShaderCompiler' ]
     defines_str = app_global_vars [ 'ShaderDefines' ]
     includes_str = app_global_vars [ 'IncludePath' ]
@@ -240,17 +257,33 @@ class RSLNode ( Node ) :
       defines_lst = defines_str.split( ',' )
       for define in defines_lst :
         shaderCmd.append ( '-D' + define.strip () )
-
+  
     shaderCmd.append ( self.shaderName )
 
-    os.chdir (  app_global_vars[ 'ProjectShaders' ] )
+    if compileDir == '' : compileDir = app_global_vars[ 'ProjectShaders' ]
+    os.chdir ( compileDir )
 
     print '>> RSLNode shaderCmd = %s' %  ' '.join ( shaderCmd )
-    print '>> ProjectShaders = %s' %  app_global_vars [ 'ProjectShaders' ]
+    print '>> compileDir = %s' % compileDir
 
     from core.meCommon import launchProcess
 
     launchProcess ( shaderCmd )
-
-    return self.getInstanceName()
+    
+  #
+  # computeNode
+  #
+  def computeNode ( self, CodeOnly = False ) :
+    #
+    print '>> RSLNode (%s).computeNode CodeOnly = %s' % ( self.label, CodeOnly )
+    #
+    shaderCode = self.getComputedCode ()
+   
+    if shaderCode != '' and not CodeOnly :
+        
+      shaderName = os.path.join ( app_global_vars [ 'ProjectSources' ], self.getInstanceName () + '.sl' )      
+      self.writeShader ( shaderCode, shaderName )
+      self.compileShader ()
+      
+    return self.shaderName
 
